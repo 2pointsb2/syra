@@ -109,15 +109,6 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
           <p className="text-xs md:text-sm text-gray-500 font-light mt-1 hidden sm:block">Accédez aux portails de nos partenaires</p>
         </div>
         <div className="flex items-center gap-3">
-          {!selectedPartner && (
-            <button
-              onClick={handleAddPartner}
-              className="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center gap-2 transition-all hover:from-blue-600 hover:to-blue-700 shadow-md hover:scale-105 text-sm font-light"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Ajouter un partenaire</span>
-            </button>
-          )}
           <button onClick={onNotificationClick} className="w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm relative flex-shrink-0">
             <Bell className="w-5 h-5 text-gray-600" />
             {notificationCount > 0 && (
@@ -141,7 +132,16 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
 
         {!selectedPartner ? (
           <div className="glass-card p-6 md:p-8 floating-shadow">
-            <h2 className="text-lg font-light text-gray-900 mb-6">Nos partenaires assureurs</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-light text-gray-900">Nos partenaires assureurs</h2>
+              <button
+                onClick={handleAddPartner}
+                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center gap-2 transition-all hover:from-blue-600 hover:to-blue-700 shadow-md hover:scale-105 text-sm font-light"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Ajouter un partenaire</span>
+              </button>
+            </div>
 
             {isLoading ? (
               <div className="flex items-center justify-center py-12">

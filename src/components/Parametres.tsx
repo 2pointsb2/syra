@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { User, Mail, Camera, Bell, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Mail, Camera, Bell, Lock, Eye, EyeOff, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { getGoogleSyncStatus, createGoogleSyncRecord, initiateGoogleOAuth, disconnectGoogleSync, GoogleSyncStatus } from '../services/googleSyncService';
 
 interface ParametresProps {
   onNotificationClick: () => void;
@@ -25,6 +26,43 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+  const [googleSync, setGoogleSync] = useState<GoogleSyncStatus | null>(null);
+  const [isSyncLoading, setIsSyncLoading] = useState(true);
+  const [syncError, setSyncError] = useState('');
+
+  useEffect(() => {
+    loadGoogleSyncStatus();
+  }, []);
+
+  const loadGoogleSyncStatus = async () => {
+    try {
+      setIsSyncLoading(true);
+      setSyncError('');
+      const status = await getGoogleSyncStatus('mock-user-id');
+      setGoogleSync(status);
+    } catch (err) {
+      setSyncError('Erreur lors du chargement du statut de synchronisation');
+    } finally {
+      setIsSyncLoading(false);
+    }
+  };
+
+  const handleConnectGoogle = () => {
+    initiateGoogleOAuth();
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!googleSync) return;
+
+    try {
+      setSyncError('');
+      await disconnectGoogleSync(googleSync.id);
+      await loadGoogleSyncStatus();
+    } catch (err) {
+      setSyncError(err instanceof Error ? err.message : 'Erreur lors de la déconnexion');
+    }
+  };
 
   const handleSave = () => {
     console.log('Saving profile:', profileData);
@@ -275,6 +313,97 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                   Annuler
                 </button>
               </div>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 md:p-6 lg:p-8 floating-shadow mt-6">
+            <h2 className="text-lg md:text-xl font-light text-gray-900 mb-6">Synchronisation Google</h2>
+
+            <div className="space-y-6 max-w-xl">
+              <p className="text-sm text-gray-600 font-light">
+                Synchronisez votre compte Google pour connecter votre Gmail et votre Google Agenda avec l'application.
+              </p>
+
+              {syncError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-2xl">
+                  <p className="text-xs text-red-600 font-light">{syncError}</p>
+                </div>
+              )}
+
+              {isSyncLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="glass-card p-4 rounded-2xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-gray-600" />
+                        <span className="text-sm font-light text-gray-900">Gmail</span>
+                      </div>
+                      {googleSync?.gmail_connected ? (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-xs font-light text-green-700">Connecté</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <XCircle className="w-5 h-5 text-red-600" />
+                          <span className="text-xs font-light text-red-700">Non connecté</span>
+                        </div>
+                      )}
+                    </div>
+                    {googleSync?.gmail_connected && googleSync.gmail_email && (
+                      <p className="text-xs text-gray-500 font-light ml-8">{googleSync.gmail_email}</p>
+                    )}
+                  </div>
+
+                  <div className="glass-card p-4 rounded-2xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Bell className="w-5 h-5 text-gray-600" />
+                        <span className="text-sm font-light text-gray-900">Google Agenda</span>
+                      </div>
+                      {googleSync?.calendar_connected ? (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-xs font-light text-green-700">Connecté</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <XCircle className="w-5 h-5 text-red-600" />
+                          <span className="text-xs font-light text-red-700">Non connecté</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {googleSync?.last_sync_at && (
+                    <div className="text-xs text-gray-500 font-light">
+                      Dernière synchronisation : {new Date(googleSync.last_sync_at).toLocaleString('fr-FR')}
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    {googleSync?.gmail_connected || googleSync?.calendar_connected ? (
+                      <button
+                        onClick={handleDisconnectGoogle}
+                        className="w-full sm:w-auto px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs md:text-sm font-light transition-all shadow-md"
+                      >
+                        Déconnecter Google
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleConnectGoogle}
+                        className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs md:text-sm font-light hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:scale-105"
+                      >
+                        Synchroniser avec Google
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

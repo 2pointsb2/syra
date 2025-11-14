@@ -40,7 +40,11 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
   const [showLeadDropdown, setShowLeadDropdown] = useState(false);
   const [emailContent, setEmailContent] = useState(defaultEmailContent);
   const [advisorPdf, setAdvisorPdf] = useState<string>('Moche Azran BNVCE.pdf');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [plaquettePdf, setPlaquettePdf] = useState<string>('Plaquette BNVCE.pdf');
+  const [additionalPdf, setAdditionalPdf] = useState<string | null>(null);
+  const advisorFileInputRef = useRef<HTMLInputElement>(null);
+  const plaquetteFileInputRef = useRef<HTMLInputElement>(null);
+  const additionalFileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredLeads = mockLeads.filter(lead => {
     const fullName = `${lead.first_name} ${lead.last_name}`.toLowerCase();
@@ -64,12 +68,37 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
     alert(`Mise en relation envoyée à ${selectedLead.first_name} ${selectedLead.last_name}`);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAdvisorFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setAdvisorPdf(file.name);
     } else {
       alert('Veuillez sélectionner un fichier PDF');
+    }
+  };
+
+  const handlePlaquetteFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setPlaquettePdf(file.name);
+    } else {
+      alert('Veuillez sélectionner un fichier PDF');
+    }
+  };
+
+  const handleAdditionalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setAdditionalPdf(file.name);
+    } else {
+      alert('Veuillez sélectionner un fichier PDF');
+    }
+  };
+
+  const removeAdditionalFile = () => {
+    setAdditionalPdf(null);
+    if (additionalFileInputRef.current) {
+      additionalFileInputRef.current.value = '';
     }
   };
 
@@ -178,7 +207,21 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">Plaquette Bienviyance</p>
-                      <p className="text-xs text-gray-600 mt-0.5">Plaquette BNVCE.pdf</p>
+                      <p className="text-xs text-gray-600 mt-0.5 truncate">{plaquettePdf}</p>
+                      <button
+                        onClick={() => plaquetteFileInputRef.current?.click()}
+                        className="mt-1.5 flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        Modifier le fichier
+                      </button>
+                      <input
+                        ref={plaquetteFileInputRef}
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handlePlaquetteFileChange}
+                        className="hidden"
+                      />
                     </div>
                   </div>
                 </div>
@@ -192,22 +235,81 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
                       <p className="text-sm font-medium text-gray-900 truncate">Moche Azran</p>
                       <p className="text-xs text-gray-600 mt-0.5 truncate">{advisorPdf}</p>
                       <button
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => advisorFileInputRef.current?.click()}
                         className="mt-1.5 flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium"
                       >
                         <Upload className="w-3.5 h-3.5" />
                         Modifier le fichier
                       </button>
                       <input
-                        ref={fileInputRef}
+                        ref={advisorFileInputRef}
                         type="file"
                         accept="application/pdf"
-                        onChange={handleFileChange}
+                        onChange={handleAdvisorFileChange}
                         className="hidden"
                       />
                     </div>
                   </div>
                 </div>
+
+                {additionalPdf ? (
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-3 border border-green-200">
+                    <div className="flex items-start gap-2">
+                      <div className="p-2 bg-white rounded-xl shadow-sm">
+                        <FileText className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">Pièce jointe supplémentaire</p>
+                        <p className="text-xs text-gray-600 mt-0.5 truncate">{additionalPdf}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <button
+                            onClick={() => additionalFileInputRef.current?.click()}
+                            className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-medium"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            Modifier
+                          </button>
+                          <button
+                            onClick={removeAdditionalFile}
+                            className="flex items-center gap-1.5 text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            Supprimer
+                          </button>
+                        </div>
+                        <input
+                          ref={additionalFileInputRef}
+                          type="file"
+                          accept="application/pdf"
+                          onChange={handleAdditionalFileChange}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => additionalFileInputRef.current?.click()}
+                    className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-3 border border-dashed border-gray-300 hover:border-gray-400 transition-all hover:from-gray-100 hover:to-gray-200"
+                  >
+                    <div className="flex items-center justify-center gap-2 h-full">
+                      <div className="p-2 bg-white rounded-xl shadow-sm">
+                        <Upload className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-gray-700">Ajouter une pièce jointe</p>
+                        <p className="text-xs text-gray-500">Fichier PDF uniquement</p>
+                      </div>
+                    </div>
+                    <input
+                      ref={additionalFileInputRef}
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleAdditionalFileChange}
+                      className="hidden"
+                    />
+                  </button>
+                )}
               </div>
             </div>
 

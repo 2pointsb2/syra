@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Home,
   Target,
@@ -18,7 +18,10 @@ import {
   ClipboardCheck,
   Building2,
   Send,
+  RefreshCw,
 } from 'lucide-react';
+import ProfileSwitcher from './ProfileSwitcher';
+import { UserProfile, getActiveProfile, getProfilePermissions, getProfileBadgeColor } from '../services/profileService';
 
 interface SidebarProps {
   currentPage: string;
@@ -31,6 +34,28 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
+  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    loadActiveProfile();
+  }, []);
+
+  const loadActiveProfile = async () => {
+    try {
+      const profile = await getActiveProfile();
+      setCurrentProfile(profile);
+    } catch (err) {
+      console.error('Error loading active profile:', err);
+    }
+  };
+
+  const handleProfileChange = (profile: UserProfile) => {
+    setCurrentProfile(profile);
+  };
+
+  const permissions = currentProfile ? getProfilePermissions(currentProfile.profile_type) : null;
+  const shouldShowManagement = permissions?.canAccessManagement ?? true;
 
   const handleCollapseToggle = () => {
     const newCollapsedState = !isCollapsed;
@@ -124,9 +149,11 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                   />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-light text-gray-900 truncate">Moche Azran</p>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-light bg-blue-100 text-blue-700">
-                    Manager
+                  <p className="text-sm font-light text-gray-900 truncate">
+                    {currentProfile ? `${currentProfile.first_name} ${currentProfile.last_name}` : 'Moche Azran'}
+                  </p>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-light ${currentProfile ? getProfileBadgeColor(currentProfile.profile_type) : 'bg-blue-100 text-blue-700'}`}>
+                    {currentProfile?.profile_type || 'Manager'}
                   </span>
                 </div>
                 {isAccountMenuOpen ? (
@@ -139,10 +166,20 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
 
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                isAccountMenuOpen ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'
+                isAccountMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="border-t border-gray-200/30 px-4 py-3">
+              <div className="border-t border-gray-200/30 px-4 py-3 space-y-2">
+                <button
+                  onClick={() => {
+                    setShowProfileSwitcher(true);
+                    setIsAccountMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 text-sm text-gray-700 hover:text-gray-900 transition-colors font-light"
+                >
+                  <RefreshCw className="w-4 h-4 text-gray-400" />
+                  <span>Changer de profil</span>
+                </button>
                 <button
                   onClick={() => {
                     handleMobileNavigate('parametres');
@@ -281,38 +318,42 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
           </div>
         </div>
 
-        {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+        {shouldShowManagement && (
+          <>
+            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
 
-        <div>
-          {!isCollapsed && (
-            <div className="px-3 mb-2">
-              <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
-                Management
-              </span>
+            <div>
+              {!isCollapsed && (
+                <div className="px-3 mb-2">
+                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                    Management
+                  </span>
+                </div>
+              )}
+              <div className="space-y-1">
+                {managementItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMobileNavigate(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
+                        isActive
+                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
+                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                      } ${isCollapsed ? 'justify-center' : ''}`}
+                      title={isCollapsed ? item.label : undefined}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          )}
-          <div className="space-y-1">
-            {managementItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentPage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleMobileNavigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
-                    isActive
-                      ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                      : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          </>
+        )}
       </nav>
 
       <div className="px-4 pb-4">
@@ -338,6 +379,14 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
         </div>
       )}
       </div>
+
+      {showProfileSwitcher && (
+        <ProfileSwitcher
+          onClose={() => setShowProfileSwitcher(false)}
+          onProfileChange={handleProfileChange}
+          currentProfile={currentProfile}
+        />
+      )}
     </>
   );
 }
