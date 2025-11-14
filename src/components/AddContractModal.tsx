@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { INSURANCE_COMPANIES, getCompanyByName, getProductByName, getAllCompanyNames, ProductConfig } from '../data/insuranceProducts';
 
 interface AddContractModalProps {
   onClose: () => void;
@@ -12,6 +13,8 @@ interface AddContractModalProps {
 interface ContractData {
   assureur: string;
   gamme_contrat: string;
+  produit: string;
+  remuneration_type: string;
   en_portefeuille: boolean;
   loi_madelin: boolean;
   contrat_principal: boolean;
@@ -21,41 +24,26 @@ interface ContractData {
   date_souscription: string;
   date_effet: string;
   date_echeance: string;
+  date_effet_supplementaire: string;
   montant_initial: string;
   versement_programme: string;
+  versement_initial: string;
   periodicite: string;
   vl: string;
   frais_versement: string;
+  vp_optionnel: string;
+  frais_a_definir: string;
+  frais_chacun: string;
+  mma_elite: boolean;
   transfert: boolean;
   montant_transfert: string;
   frais_transfert: string;
   frais_dossier: string;
   assureurs_interroges: string[];
+  propositions_comparatives: string[];
 }
 
-const ASSUREURS = [
-  'Abeille Assurances',
-  'Acp',
-  'Add Value',
-  'ADP Assurances',
-  'Afi Esca',
-  'AFOI',
-  'Afps',
-  'AG2R La Mondiale',
-  'Allianz',
-  'Apicil',
-  'April',
-  'Asac Fapes',
-  'Assurance Epargne Pension',
-  'AXA',
-  'Generali',
-  'Groupama',
-  'La Banque Postale',
-  'Malakoff Humanis',
-  'MMA',
-  'Suravenir',
-  'Swiss Life',
-];
+const ASSUREURS = getAllCompanyNames();
 
 const GAMMES = [
   'Assurance vie',
@@ -80,9 +68,13 @@ const ASSUREURS_SUGGESTIONS: { [key: string]: string[] } = {
 export default function AddContractModal({ onClose, onSave, editContract, editIndex }: AddContractModalProps) {
   const [searchAssureur, setSearchAssureur] = useState('');
   const [assureursInterroges, setAssureursInterroges] = useState<string[]>(editContract?.assureurs_interroges || []);
+  const [availableProducts, setAvailableProducts] = useState<ProductConfig[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<ProductConfig | null>(null);
   const [formData, setFormData] = useState<ContractData>(editContract || {
     assureur: '',
     gamme_contrat: '',
+    produit: '',
+    remuneration_type: '',
     en_portefeuille: false,
     loi_madelin: false,
     contrat_principal: false,
@@ -92,16 +84,23 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
     date_souscription: '',
     date_effet: '',
     date_echeance: '',
+    date_effet_supplementaire: '',
     montant_initial: '',
     versement_programme: '',
+    versement_initial: '',
     periodicite: '',
     vl: '',
     frais_versement: '',
+    vp_optionnel: '',
+    frais_a_definir: '',
+    frais_chacun: '',
+    mma_elite: false,
     transfert: false,
     montant_transfert: '',
     frais_transfert: '',
     frais_dossier: '',
     assureurs_interroges: [],
+    propositions_comparatives: [],
   });
 
   const filteredAssureurs = ASSUREURS.filter(assureur =>
@@ -119,7 +118,15 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
   };
 
   const handleAssureurChange = (assureur: string) => {
-    setFormData({ ...formData, assureur });
+    setFormData({ ...formData, assureur, produit: '', remuneration_type: '', propositions_comparatives: [] });
+    setSelectedProduct(null);
+
+    const company = getCompanyByName(assureur);
+    if (company) {
+      setAvailableProducts(company.products);
+    } else {
+      setAvailableProducts([]);
+    }
 
     if (assureur && formData.gamme_contrat && ASSUREURS_SUGGESTIONS[formData.gamme_contrat]) {
       const suggestions = ASSUREURS_SUGGESTIONS[formData.gamme_contrat];
@@ -127,6 +134,34 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
       setAssureursInterroges([assureur, ...otherSuggestions]);
     }
   };
+
+  const handleProductChange = (productName: string) => {
+    const product = getProductByName(formData.assureur, productName);
+    if (product) {
+      setSelectedProduct(product);
+      setFormData({
+        ...formData,
+        produit: productName,
+        remuneration_type: product.remuneration,
+        propositions_comparatives: product.comparativeProposals,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (editContract && editContract.assureur) {
+      const company = getCompanyByName(editContract.assureur);
+      if (company) {
+        setAvailableProducts(company.products);
+        if (editContract.produit) {
+          const product = getProductByName(editContract.assureur, editContract.produit);
+          if (product) {
+            setSelectedProduct(product);
+          }
+        }
+      }
+    }
+  }, [editContract]);
 
   const handleSave = () => {
     if (onSave) {
@@ -221,6 +256,32 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                   </div>
                 </div>
 
+                {/* Produit - shown only if company is selected */}
+                {formData.assureur && availableProducts.length > 0 && (
+                  <div className="mt-6">
+                    <label className="block text-sm font-light text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Produit
+                    </label>
+                    <select
+                      value={formData.produit}
+                      onChange={(e) => handleProductChange(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                    >
+                      <option value="">Sélectionner un produit...</option>
+                      {availableProducts.map((product) => (
+                        <option key={product.name} value={product.name}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedProduct && (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Rémunération: {selectedProduct.remuneration}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Checkboxes */}
                 <div className="flex gap-8 mt-6">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -269,81 +330,6 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                           {assureur}
                         </span>
                       ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Transfert checkbox pour PER non-MMA */}
-                {formData.gamme_contrat === 'PER' && formData.assureur !== 'MMA' && formData.assureur && (
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.transfert}
-                        onChange={(e) => setFormData({ ...formData, transfert: e.target.checked })}
-                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-light text-gray-700">Transfert</span>
-                    </label>
-                  </div>
-                )}
-
-                {/* Champs PER x MMA */}
-                {formData.gamme_contrat === 'PER' && formData.assureur === 'MMA' && (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-light text-gray-700 mb-2">
-                        VL
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.vl}
-                        onChange={(e) => setFormData({ ...formData, vl: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                        placeholder="Valeur liquidative"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-light text-gray-700 mb-2">
-                        Frais sur versement
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.frais_versement}
-                        onChange={(e) => setFormData({ ...formData, frais_versement: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                        placeholder="%"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Champs Transfert pour PER non-MMA */}
-                {formData.gamme_contrat === 'PER' && formData.assureur !== 'MMA' && formData.transfert && (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-light text-gray-700 mb-2">
-                        Montant transfert (€)
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.montant_transfert}
-                        onChange={(e) => setFormData({ ...formData, montant_transfert: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                        placeholder="Montant"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-light text-gray-700 mb-2">
-                        Frais sur versement
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.frais_transfert}
-                        onChange={(e) => setFormData({ ...formData, frais_transfert: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                        placeholder="%"
-                      />
                     </div>
                   </div>
                 )}
@@ -412,71 +398,222 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
               <div>
                 <h3 className="text-lg font-light text-gray-900 mb-4 pb-2 border-b border-gray-200">Informations financières</h3>
                 <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Montant initial */}
-                  <div>
-                    <label className="block text-sm font-light text-gray-700 mb-2">
-                      Montant initial (€)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.montant_initial}
-                      onChange={(e) => setFormData({ ...formData, montant_initial: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                      placeholder=""
-                    />
+                  {/* Standard fields - always visible */}
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Montant initial */}
+                    <div>
+                      <label className="block text-sm font-light text-gray-700 mb-2">
+                        Montant initial (€)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.montant_initial}
+                        onChange={(e) => setFormData({ ...formData, montant_initial: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                        placeholder=""
+                      />
+                    </div>
+
+                    {/* Versement programmé */}
+                    <div>
+                      <label className="block text-sm font-light text-gray-700 mb-2">
+                        Versement programmé (€)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.versement_programme}
+                        onChange={(e) => setFormData({ ...formData, versement_programme: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                        placeholder=""
+                      />
+                    </div>
                   </div>
 
-                  {/* Versement programmé */}
+                  {/* Périodicité */}
                   <div>
                     <label className="block text-sm font-light text-gray-700 mb-2">
-                      Versement programmé (€)
+                      Périodicité
                     </label>
-                    <input
-                      type="text"
-                      value={formData.versement_programme}
-                      onChange={(e) => setFormData({ ...formData, versement_programme: e.target.value })}
+                    <select
+                      value={formData.periodicite}
+                      onChange={(e) => setFormData({ ...formData, periodicite: e.target.value })}
                       className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                      placeholder=""
-                    />
+                    >
+                      <option value="">Sélectionner...</option>
+                      <option value="Mensuel">Mensuel</option>
+                      <option value="Trimestriel">Trimestriel</option>
+                      <option value="Semestriel">Semestriel</option>
+                      <option value="Annuel">Annuel</option>
+                    </select>
                   </div>
+
+                  {/* Dynamic fields based on selected product */}
+                  {selectedProduct && selectedProduct.fields && selectedProduct.fields.length > 0 && (
+                    <div className="space-y-6 p-4 bg-blue-50/30 rounded-2xl border border-blue-200/30">
+                      <h4 className="text-sm font-medium text-gray-900">Champs spécifiques au produit</h4>
+
+                      <div className="grid grid-cols-2 gap-6">
+                        {selectedProduct.fields.map((field) => {
+                          switch (field.type) {
+                            case 'versement_initial':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.required && <span className="text-red-500">* </span>}
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.versement_initial}
+                                    onChange={(e) => setFormData({ ...formData, versement_initial: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                    placeholder=""
+                                  />
+                                  {field.note && <p className="mt-1 text-xs text-gray-500">{field.note}</p>}
+                                </div>
+                              );
+
+                            case 'mma_elite':
+                              return (
+                                <div key={field.type} className="flex items-center">
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={formData.mma_elite}
+                                      onChange={(e) => setFormData({ ...formData, mma_elite: e.target.checked })}
+                                      className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm font-light text-gray-700">{field.label}</span>
+                                  </label>
+                                </div>
+                              );
+
+                            case 'frais_versement':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.frais_versement}
+                                    onChange={(e) => setFormData({ ...formData, frais_versement: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                    placeholder="%"
+                                  />
+                                </div>
+                              );
+
+                            case 'vp_optionnel':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.vp_optionnel}
+                                    onChange={(e) => setFormData({ ...formData, vp_optionnel: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                    placeholder=""
+                                  />
+                                </div>
+                              );
+
+                            case 'frais_a_definir':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.frais_a_definir}
+                                    onChange={(e) => setFormData({ ...formData, frais_a_definir: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                    placeholder=""
+                                  />
+                                </div>
+                              );
+
+                            case 'date_effet_supplementaire':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={formData.date_effet_supplementaire}
+                                    onChange={(e) => setFormData({ ...formData, date_effet_supplementaire: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                  />
+                                </div>
+                              );
+
+                            case 'frais_chacun':
+                              return (
+                                <div key={field.type}>
+                                  <label className="block text-sm font-light text-gray-700 mb-2">
+                                    {field.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={formData.frais_chacun}
+                                    onChange={(e) => setFormData({ ...formData, frais_chacun: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                                    placeholder="%"
+                                  />
+                                </div>
+                              );
+
+                            default:
+                              return null;
+                          }
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Legacy fields - Champs Assurance emprunteur */}
+                  {formData.gamme_contrat === 'Assurance emprunteur' && !selectedProduct && (
+                    <div>
+                      <label className="block text-sm font-light text-gray-700 mb-2">
+                        Frais de dossier (€)
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.frais_dossier}
+                        onChange={(e) => setFormData({ ...formData, frais_dossier: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                        placeholder="Montant des frais de dossier"
+                      />
+                    </div>
+                  )}
+
+                  {/* Comparative Proposals */}
+                  {selectedProduct && formData.propositions_comparatives.length > 0 && (
+                    <div className="p-4 bg-green-50/50 rounded-2xl border border-green-200/50">
+                      <label className="block text-sm font-medium text-gray-900 mb-3">
+                        Propositions comparatives automatiques
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.propositions_comparatives.map((proposal, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1.5 bg-white border border-green-300 text-green-700 rounded-full text-xs font-light shadow-sm"
+                          >
+                            {proposal}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500">
+                        Ces assureurs sont recommandés pour comparaison avec le produit sélectionné
+                      </p>
+                    </div>
+                  )}
                 </div>
-
-                {/* Périodicité */}
-                <div>
-                  <label className="block text-sm font-light text-gray-700 mb-2">
-                    Périodicité
-                  </label>
-                  <select
-                    value={formData.periodicite}
-                    onChange={(e) => setFormData({ ...formData, periodicite: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                  >
-                    <option value="">Sélectionner...</option>
-                    <option value="Mensuel">Mensuel</option>
-                    <option value="Trimestriel">Trimestriel</option>
-                    <option value="Semestriel">Semestriel</option>
-                    <option value="Annuel">Annuel</option>
-                  </select>
-                </div>
-
-                {/* Champs Assurance emprunteur */}
-                {formData.gamme_contrat === 'Assurance emprunteur' && (
-                  <div>
-                    <label className="block text-sm font-light text-gray-700 mb-2">
-                      Frais de dossier (€)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.frais_dossier}
-                      onChange={(e) => setFormData({ ...formData, frais_dossier: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                      placeholder="Montant des frais de dossier"
-                    />
-                  </div>
-                )}
               </div>
-            </div>
             </div>
           </div>
 
