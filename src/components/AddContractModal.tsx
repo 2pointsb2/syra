@@ -236,41 +236,51 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                     </div>
                   </div>
 
-                  {/* Gamme de contrat (now shows Produit) */}
+                  {/* Gamme de contrat */}
                   <div>
                     <label className="block text-sm font-light text-gray-700 mb-2">
                       <span className="text-red-500">*</span> Gamme de contrat
                     </label>
-                    {formData.assureur && availableProducts.length > 0 ? (
-                      <>
-                        <select
-                          value={formData.produit}
-                          onChange={(e) => handleProductChange(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
-                        >
-                          <option value="">Sélectionner un produit...</option>
-                          {availableProducts.map((product) => (
-                            <option key={product.name} value={product.name}>
-                              {product.name}
-                            </option>
-                          ))}
-                        </select>
-                        {selectedProduct && (
-                          <p className="mt-2 text-xs text-gray-500">
-                            Rémunération: {selectedProduct.remuneration}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <select
-                        disabled
-                        className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200/50 rounded-2xl text-sm font-light text-gray-400 cursor-not-allowed"
-                      >
-                        <option value="">Sélectionner d'abord un assureur...</option>
-                      </select>
-                    )}
+                    <select
+                      value={formData.gamme_contrat}
+                      onChange={(e) => handleGammeChange(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                    >
+                      <option value="">Sélectionner...</option>
+                      {GAMMES.map((gamme) => (
+                        <option key={gamme} value={gamme}>
+                          {gamme}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
+
+                {/* Produit - shown only if company is selected */}
+                {formData.assureur && availableProducts.length > 0 && (
+                  <div className="mt-6">
+                    <label className="block text-sm font-light text-gray-700 mb-2">
+                      <span className="text-red-500">*</span> Produit
+                    </label>
+                    <select
+                      value={formData.produit}
+                      onChange={(e) => handleProductChange(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
+                    >
+                      <option value="">Sélectionner un produit...</option>
+                      {availableProducts.map((product) => (
+                        <option key={product.name} value={product.name}>
+                          {product.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedProduct && (
+                      <p className="mt-2 text-xs text-gray-500">
+                        Rémunération: {selectedProduct.remuneration}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Checkboxes */}
                 <div className="flex gap-8 mt-6">
@@ -324,9 +334,22 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                   </div>
                 )}
 
+                {/* Commentaires */}
+                <div>
+                  <label className="block text-sm font-light text-gray-700 mb-2">
+                    Commentaires
+                  </label>
+                  <textarea
+                    value={formData.commentaires}
+                    onChange={(e) => setFormData({ ...formData, commentaires: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-none"
+                    placeholder=""
+                  />
+                </div>
               </div>
 
-              {/* Section Dates */
+              {/* Section Dates */}
               <div>
                 <h3 className="text-lg font-light text-gray-900 mb-4 pb-2 border-b border-gray-200">Dates</h3>
                 <div className="grid grid-cols-3 gap-6">
@@ -368,6 +391,7 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                     className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500"
                   />
                 </div>
+              </div>
               </div>
 
               {/* Section Financier */}
@@ -588,23 +612,6 @@ export default function AddContractModal({ onClose, onSave, editContract, editIn
                       </p>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Section Commentaires - placed at the end */}
-              <div>
-                <h3 className="text-lg font-light text-gray-900 mb-4 pb-2 border-b border-gray-200">Commentaires</h3>
-                <div>
-                  <label className="block text-sm font-light text-gray-700 mb-2">
-                    Commentaires
-                  </label>
-                  <textarea
-                    value={formData.commentaires}
-                    onChange={(e) => setFormData({ ...formData, commentaires: e.target.value })}
-                    rows={4}
-                    className="w-full px-4 py-2.5 bg-white/80 border border-gray-200/50 rounded-2xl text-sm font-light focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 resize-none"
-                    placeholder=""
-                  />
                 </div>
               </div>
             </div>
