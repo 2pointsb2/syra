@@ -20,6 +20,9 @@ export interface ProfilePermissions {
   canViewTeamData: boolean;
   canEditOwnData: boolean;
   canViewSharedAppointments: boolean;
+  canManagePartners: boolean;
+  canEditEmailTemplates: boolean;
+  canManageOrganizationSettings: boolean;
 }
 
 export async function getAllProfiles(): Promise<UserProfile[]> {
@@ -67,6 +70,9 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
         canViewTeamData: true,
         canEditOwnData: true,
         canViewSharedAppointments: true,
+        canManagePartners: true,
+        canEditEmailTemplates: true,
+        canManageOrganizationSettings: true,
       };
     case 'Manager+':
       return {
@@ -76,6 +82,9 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
         canViewTeamData: true,
         canEditOwnData: true,
         canViewSharedAppointments: true,
+        canManagePartners: true,
+        canEditEmailTemplates: true,
+        canManageOrganizationSettings: true,
       };
     case 'Manager':
       return {
@@ -85,6 +94,9 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
         canViewTeamData: true,
         canEditOwnData: true,
         canViewSharedAppointments: true,
+        canManagePartners: false,
+        canEditEmailTemplates: false,
+        canManageOrganizationSettings: false,
       };
     case 'Conseiller':
       return {
@@ -94,6 +106,9 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
         canViewTeamData: false,
         canEditOwnData: true,
         canViewSharedAppointments: true,
+        canManagePartners: false,
+        canEditEmailTemplates: false,
+        canManageOrganizationSettings: false,
       };
     default:
       return {
@@ -103,6 +118,9 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
         canViewTeamData: false,
         canEditOwnData: true,
         canViewSharedAppointments: false,
+        canManagePartners: false,
+        canEditEmailTemplates: false,
+        canManageOrganizationSettings: false,
       };
   }
 }

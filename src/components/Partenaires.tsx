@@ -1,7 +1,8 @@
-import { Bell, X, Plus, Edit2, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Bell, X, Plus, Edit2, Trash2, Loader2, AlertCircle, Lock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import PartnerFormModal from './PartnerFormModal';
 import { Partner, getAllPartners, createPartner, updatePartner, deletePartner, PartnerFormData } from '../services/partnersService';
+import { getActiveProfile, getProfilePermissions, UserProfile } from '../services/profileService';
 
 interface PartenairesProps {
   onNotificationClick: () => void;
@@ -28,10 +29,27 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
   const [error, setError] = useState<string>('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  const [canManage, setCanManage] = useState(false);
 
   useEffect(() => {
     loadPartners();
+    loadProfile();
   }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await getActiveProfile();
+      setCurrentProfile(profile);
+      if (profile) {
+        const permissions = getProfilePermissions(profile.profile_type);
+        setCanManage(permissions.canManagePartners);
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      setCanManage(false);
+    }
+  };
 
   const loadPartners = async () => {
     try {
@@ -49,11 +67,19 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
   };
 
   const handleAddPartner = () => {
+    if (!canManage) {
+      setError('Seuls les Admin et Manager+ peuvent ajouter des partenaires');
+      return;
+    }
     setEditingPartner(null);
     setIsFormModalOpen(true);
   };
 
   const handleEditPartner = (partner: Partner) => {
+    if (!canManage) {
+      setError('Seuls les Admin et Manager+ peuvent modifier des partenaires');
+      return;
+    }
     if (partner.id.startsWith('default-')) {
       setError('Les partenaires par défaut ne peuvent pas être modifiés');
       return;
@@ -72,6 +98,10 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
   };
 
   const handleDeletePartner = async (partner: Partner) => {
+    if (!canManage) {
+      setError('Seuls les Admin et Manager+ peuvent supprimer des partenaires');
+      return;
+    }
     if (partner.id.startsWith('default-')) {
       setError('Les partenaires par défaut ne peuvent pas être supprimés');
       return;
@@ -134,13 +164,20 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
           <div className="glass-card p-6 md:p-8 floating-shadow">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-light text-gray-900">Nos partenaires assureurs</h2>
-              <button
-                onClick={handleAddPartner}
-                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center gap-2 transition-all hover:from-blue-600 hover:to-blue-700 shadow-md hover:scale-105 text-sm font-light"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Ajouter un partenaire</span>
-              </button>
+              {canManage ? (
+                <button
+                  onClick={handleAddPartner}
+                  className="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white flex items-center gap-2 transition-all hover:from-blue-600 hover:to-blue-700 shadow-md hover:scale-105 text-sm font-light"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Ajouter un partenaire</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 text-gray-500 text-xs font-light" title="Réservé aux Admin et Manager+">
+                  <Lock className="w-4 h-4" />
+                  <span className="hidden sm:inline">Mode consultation</span>
+                </div>
+              )}
             </div>
 
             {isLoading ? (
@@ -154,28 +191,30 @@ export default function Partenaires({ onNotificationClick, notificationCount }: 
                     key={partner.id}
                     className="glass-card p-6 md:p-8 hover:bg-white transition-all group relative"
                   >
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditPartner(partner);
-                        }}
-                        className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all shadow-md"
-                        title="Modifier"
-                      >
-                        <Edit2 className="w-4 h-4 text-white" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePartner(partner);
-                        }}
-                        className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-md"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
+                    {canManage && (
+                      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPartner(partner);
+                          }}
+                          className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all shadow-md"
+                          title="Modifier"
+                        >
+                          <Edit2 className="w-4 h-4 text-white" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePartner(partner);
+                          }}
+                          className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-md"
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    )}
                     <button
                       onClick={() => setSelectedPartner(partner)}
                       className="w-full flex flex-col items-center justify-center gap-4 cursor-pointer"

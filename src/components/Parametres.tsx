@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
-import { User, Mail, Camera, Bell, Lock, Eye, EyeOff, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { User, Mail, Camera, Bell, Lock, Eye, EyeOff, CheckCircle, XCircle, Loader2, Image, Upload } from 'lucide-react';
 import { getGoogleSyncStatus, createGoogleSyncRecord, initiateGoogleOAuth, disconnectGoogleSync, GoogleSyncStatus } from '../services/googleSyncService';
+import { getActiveProfile, getProfilePermissions, UserProfile } from '../services/profileService';
+import { getOrganizationSettings, uploadMainLogo, uploadCollapsedLogo } from '../services/organizationSettingsService';
 
 interface ParametresProps {
   onNotificationClick: () => void;
@@ -31,9 +33,48 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
   const [isSyncLoading, setIsSyncLoading] = useState(true);
   const [syncError, setSyncError] = useState('');
 
+  const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  const [canManageSettings, setCanManageSettings] = useState(false);
+  const [mainLogoUrl, setMainLogoUrl] = useState<string | null>(null);
+  const [collapsedLogoUrl, setCollapsedLogoUrl] = useState<string | null>(null);
+  const [isUploadingMainLogo, setIsUploadingMainLogo] = useState(false);
+  const [isUploadingCollapsedLogo, setIsUploadingCollapsedLogo] = useState(false);
+  const [logoSuccessMessage, setLogoSuccessMessage] = useState('');
+  const [logoErrorMessage, setLogoErrorMessage] = useState('');
+  const mainLogoInputRef = useRef<HTMLInputElement>(null);
+  const collapsedLogoInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     loadGoogleSyncStatus();
+    loadProfile();
+    loadLogos();
   }, []);
+
+  const loadProfile = async () => {
+    try {
+      const profile = await getActiveProfile();
+      setCurrentProfile(profile);
+      if (profile) {
+        const permissions = getProfilePermissions(profile.profile_type);
+        setCanManageSettings(permissions.canManageOrganizationSettings);
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      setCanManageSettings(false);
+    }
+  };
+
+  const loadLogos = async () => {
+    try {
+      const settings = await getOrganizationSettings();
+      if (settings) {
+        setMainLogoUrl(settings.main_logo_url);
+        setCollapsedLogoUrl(settings.collapsed_logo_url);
+      }
+    } catch (err) {
+      console.error('Error loading logos:', err);
+    }
+  };
 
   const loadGoogleSyncStatus = async () => {
     try {
@@ -104,6 +145,56 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
       newPassword: '',
       confirmPassword: ''
     });
+  };
+
+  const handleMainLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setLogoErrorMessage('Seuls les fichiers image sont autorisés');
+      return;
+    }
+
+    try {
+      setIsUploadingMainLogo(true);
+      setLogoErrorMessage('');
+      setLogoSuccessMessage('');
+      const url = await uploadMainLogo(file);
+      setMainLogoUrl(url);
+      setLogoSuccessMessage('Logo principal mis à jour avec succès');
+      setTimeout(() => setLogoSuccessMessage(''), 3000);
+      window.location.reload();
+    } catch (err) {
+      setLogoErrorMessage(err instanceof Error ? err.message : 'Erreur lors du téléchargement');
+    } finally {
+      setIsUploadingMainLogo(false);
+    }
+  };
+
+  const handleCollapsedLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setLogoErrorMessage('Seuls les fichiers image sont autorisés');
+      return;
+    }
+
+    try {
+      setIsUploadingCollapsedLogo(true);
+      setLogoErrorMessage('');
+      setLogoSuccessMessage('');
+      const url = await uploadCollapsedLogo(file);
+      setCollapsedLogoUrl(url);
+      setLogoSuccessMessage('Logo réduit mis à jour avec succès');
+      setTimeout(() => setLogoSuccessMessage(''), 3000);
+      window.location.reload();
+    } catch (err) {
+      setLogoErrorMessage(err instanceof Error ? err.message : 'Erreur lors du téléchargement');
+    } finally {
+      setIsUploadingCollapsedLogo(false);
+    }
   };
 
   return (
@@ -406,6 +497,122 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
               )}
             </div>
           </div>
+
+          {canManageSettings && (
+            <div className="glass-card p-4 md:p-6 lg:p-8 floating-shadow mt-6">
+              <h2 className="text-lg md:text-xl font-light text-gray-900 mb-6">Personnalisation du CRM</h2>
+
+              <div className="space-y-6 max-w-4xl">
+                <p className="text-sm text-gray-600 font-light">
+                  Personnalisez les logos du CRM pour tous les utilisateurs de l'organisation.
+                </p>
+
+                {logoSuccessMessage && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-2xl">
+                    <p className="text-sm text-green-700 font-light">{logoSuccessMessage}</p>
+                  </div>
+                )}
+
+                {logoErrorMessage && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-2xl">
+                    <p className="text-sm text-red-700 font-light">{logoErrorMessage}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Logo principal (sidebar étendue)
+                    </label>
+                    <div className="glass-card p-4 rounded-2xl border border-gray-200">
+                      <div className="flex items-center justify-center h-32 mb-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                        {mainLogoUrl ? (
+                          <img src={mainLogoUrl} alt="Logo principal" className="max-h-24 object-contain" />
+                        ) : (
+                          <img src="/Bienviyance-logo-2.png" alt="Logo par défaut" className="max-h-24 object-contain" />
+                        )}
+                      </div>
+                      <button
+                        onClick={() => mainLogoInputRef.current?.click()}
+                        disabled={isUploadingMainLogo}
+                        className="w-full px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 rounded-2xl text-sm font-light text-gray-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isUploadingMainLogo ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            Modifier le logo
+                          </>
+                        )}
+                      </button>
+                      <input
+                        ref={mainLogoInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMainLogoUpload}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-gray-500 font-light mt-2 text-center">
+                        PNG, JPG, SVG - Max 2MB
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Logo réduit (sidebar rétractée)
+                    </label>
+                    <div className="glass-card p-4 rounded-2xl border border-gray-200">
+                      <div className="flex items-center justify-center h-32 mb-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                        {collapsedLogoUrl ? (
+                          <img src={collapsedLogoUrl} alt="Logo réduit" className="max-h-20 object-contain" />
+                        ) : (
+                          <img src="/Bienvisport-logo-b.png" alt="Logo par défaut" className="max-h-20 object-contain" />
+                        )}
+                      </div>
+                      <button
+                        onClick={() => collapsedLogoInputRef.current?.click()}
+                        disabled={isUploadingCollapsedLogo}
+                        className="w-full px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 rounded-2xl text-sm font-light text-gray-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isUploadingCollapsedLogo ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Téléchargement...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            Modifier le logo
+                          </>
+                        )}
+                      </button>
+                      <input
+                        ref={collapsedLogoInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCollapsedLogoUpload}
+                        className="hidden"
+                      />
+                      <p className="text-xs text-gray-500 font-light mt-2 text-center">
+                        PNG, JPG, SVG - Max 2MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+                  <p className="text-xs text-blue-700 font-light">
+                    Les modifications seront visibles par tous les utilisateurs après rechargement de la page.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

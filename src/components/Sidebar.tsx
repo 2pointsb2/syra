@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import ProfileSwitcher from './ProfileSwitcher';
 import { UserProfile, getActiveProfile, getProfilePermissions, getProfileBadgeColor } from '../services/profileService';
+import { getOrganizationSettings } from '../services/organizationSettingsService';
 
 interface SidebarProps {
   currentPage: string;
@@ -36,9 +37,12 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
+  const [mainLogoUrl, setMainLogoUrl] = useState<string | null>(null);
+  const [collapsedLogoUrl, setCollapsedLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadActiveProfile();
+    loadLogos();
   }, []);
 
   const loadActiveProfile = async () => {
@@ -47,6 +51,18 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
       setCurrentProfile(profile);
     } catch (err) {
       console.error('Error loading active profile:', err);
+    }
+  };
+
+  const loadLogos = async () => {
+    try {
+      const settings = await getOrganizationSettings();
+      if (settings) {
+        setMainLogoUrl(settings.main_logo_url);
+        setCollapsedLogoUrl(settings.collapsed_logo_url);
+      }
+    } catch (err) {
+      console.error('Error loading logos:', err);
     }
   };
 
@@ -118,7 +134,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
       <div className="p-6 relative">
         <div className="flex items-center justify-center mb-6 relative">
           <img
-            src={isCollapsed ? "/Bienvisport-logo-b.png" : "/Bienviyance-logo-2.png"}
+            src={isCollapsed ? (collapsedLogoUrl || "/Bienvisport-logo-b.png") : (mainLogoUrl || "/Bienviyance-logo-2.png")}
             alt="Bienviyance"
             className={`${isCollapsed ? 'h-10' : 'h-8'} object-contain transition-all duration-300`}
           />
