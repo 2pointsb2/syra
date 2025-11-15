@@ -41,7 +41,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
           <div className="flex justify-center mb-8">
             <img
-              src="/Bienviyance-logo-2.svg"
+              src="/Bienviyance-logo-2.png"
               alt="Bienviyance"
               className="h-16 object-contain"
             />

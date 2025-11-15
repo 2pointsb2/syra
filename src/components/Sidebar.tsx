@@ -134,7 +134,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
       <div className="p-6 relative">
         <div className="flex items-center justify-center mb-6 relative">
           <img
-            src={isCollapsed ? (collapsedLogoUrl || "/Bienvisport-logo-b.svg") : (mainLogoUrl || "/Bienviyance-logo-2.svg")}
+            src={isCollapsed ? (collapsedLogoUrl || "/Bienvisport-logo-b.png") : (mainLogoUrl || "/Bienviyance-logo-2.png")}
             alt="Bienviyance"
             className={`${isCollapsed ? 'h-10' : 'h-8'} object-contain transition-all duration-300`}
           />
