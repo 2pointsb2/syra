@@ -11,10 +11,10 @@ interface ParametresProps {
 
 export default function Parametres({ onNotificationClick, notificationCount }: ParametresProps) {
   const [profileData, setProfileData] = useState({
-    firstName: 'Moche',
-    lastName: 'Azran',
-    email: 'moche.azran@example.com',
-    photoUrl: '/Retouched Azran Moche 2.jpeg'
+    firstName: '',
+    lastName: '',
+    email: '',
+    photoUrl: ''
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -57,6 +57,12 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
       if (profile) {
         const permissions = getProfilePermissions(profile.profile_type);
         setCanManageSettings(permissions.canManageOrganizationSettings);
+        setProfileData({
+          firstName: profile.first_name,
+          lastName: profile.last_name,
+          email: profile.email,
+          photoUrl: profile.photo_url
+        });
       }
     } catch (err) {
       console.error('Error loading profile:', err);

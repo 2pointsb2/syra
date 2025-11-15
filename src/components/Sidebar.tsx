@@ -159,7 +159,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-violet-500 shadow-md">
                   <img
-                    src="/Retouched Azran Moche 2.jpeg"
+                    src={currentProfile?.photo_url || "/Retouched Azran Moche 2.jpeg"}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
