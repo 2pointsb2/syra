@@ -409,10 +409,16 @@ function LeadCard({ lead, onUpdate, showOwner }: { lead: Lead; onUpdate: (leadId
             </div>
             <div>
               <h3 className="font-light text-gray-900 text-base md:text-lg">{lead.first_name} {lead.last_name}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="inline-flex items-center text-xs text-gray-500 font-light">
-                  <span className="hidden sm:inline">Mis à jour: {new Date(lead.updated_at).toLocaleDateString('fr-FR')}</span>
-                </span>
+              <div className="flex flex-col gap-1 mt-1">
+                {lead.status_updated_at && lead.status_updated_by ? (
+                  <span className="text-xs text-gray-500 font-light">
+                    Statut mis à jour le {new Date(lead.status_updated_at).toLocaleDateString('fr-FR')} par {lead.status_updated_by}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center text-xs text-gray-500 font-light">
+                    <span className="hidden sm:inline">Mis à jour: {new Date(lead.updated_at).toLocaleDateString('fr-FR')}</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
