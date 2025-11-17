@@ -12,10 +12,12 @@ import SimulationPER from './components/SimulationPER';
 import Performance from './components/Performance';
 import Parametres from './components/Parametres';
 import Client from './components/Client';
+import Bibliotheque from './components/Bibliotheque';
 import NotificationsSidebar from './components/NotificationsSidebar';
 import Login from './components/Login';
 import { supabase } from './lib/supabase';
 import { Bell } from 'lucide-react';
+import { DocumentCategory } from './types';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -84,6 +86,8 @@ function App() {
         return <Performance {...pageProps} />;
       case 'parametres':
         return <Parametres {...pageProps} />;
+      case 'bibliotheque':
+        return <Bibliotheque {...pageProps} />;
       default:
         return <Dashboard {...pageProps} />;
     }

@@ -1,31 +1,5 @@
 import { supabase } from '../lib/supabase';
-
-export interface UserProfile {
-  id: string;
-  profile_type: 'Admin' | 'Manager' | 'Gestion' | 'Signataire' | 'Téléprospecteur';
-  first_name: string;
-  last_name: string;
-  email: string;
-  photo_url: string;
-  advisor_brochure_url?: string;
-  team_manager_id: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ProfilePermissions {
-  canAccessManagement: boolean;
-  canViewAllData: boolean;
-  canEditAllData: boolean;
-  canViewTeamData: boolean;
-  canEditOwnData: boolean;
-  canViewSharedAppointments: boolean;
-  canManagePartners: boolean;
-  canEditEmailTemplates: boolean;
-  canManageOrganizationSettings: boolean;
-  canEditAdvisorPdf: boolean;
-}
+import { UserProfile, ProfilePermissions } from '../types';
 
 export async function getAllProfiles(): Promise<UserProfile[]> {
   const { data, error } = await supabase
@@ -66,81 +40,108 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
   switch (profileType) {
     case 'Admin':
       return {
+        canAccessDashboard: true,
+        canAccessLeads: true,
+        canAccessClients: true,
+        canAccessAppointments: true,
         canAccessManagement: true,
-        canViewAllData: true,
-        canEditAllData: true,
-        canViewTeamData: true,
-        canEditOwnData: true,
-        canViewSharedAppointments: true,
-        canManagePartners: true,
-        canEditEmailTemplates: true,
-        canManageOrganizationSettings: true,
-        canEditAdvisorPdf: true,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: true,
+        canManageUsers: true,
+        canManageSettings: true,
+        canViewAllLeads: true,
+        canTransferLeads: true,
+        canDeleteLeads: true,
       };
     case 'Manager':
       return {
+        canAccessDashboard: true,
+        canAccessLeads: true,
+        canAccessClients: true,
+        canAccessAppointments: true,
         canAccessManagement: true,
-        canViewAllData: true,
-        canEditAllData: true,
-        canViewTeamData: true,
-        canEditOwnData: true,
-        canViewSharedAppointments: true,
-        canManagePartners: true,
-        canEditEmailTemplates: true,
-        canManageOrganizationSettings: true,
-        canEditAdvisorPdf: true,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: true,
+        canManageUsers: true,
+        canManageSettings: true,
+        canViewAllLeads: true,
+        canTransferLeads: true,
+        canDeleteLeads: true,
       };
     case 'Gestion':
       return {
+        canAccessDashboard: true,
+        canAccessLeads: true,
+        canAccessClients: true,
+        canAccessAppointments: true,
         canAccessManagement: true,
-        canViewAllData: true,
-        canEditAllData: true,
-        canViewTeamData: true,
-        canEditOwnData: true,
-        canViewSharedAppointments: true,
-        canManagePartners: true,
-        canEditEmailTemplates: true,
-        canManageOrganizationSettings: false,
-        canEditAdvisorPdf: true,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: true,
+        canManageUsers: false,
+        canManageSettings: false,
+        canViewAllLeads: true,
+        canTransferLeads: true,
+        canDeleteLeads: false,
       };
     case 'Signataire':
       return {
+        canAccessDashboard: true,
+        canAccessLeads: true,
+        canAccessClients: true,
+        canAccessAppointments: true,
         canAccessManagement: false,
-        canViewAllData: false,
-        canEditAllData: false,
-        canViewTeamData: true,
-        canEditOwnData: true,
-        canViewSharedAppointments: true,
-        canManagePartners: false,
-        canEditEmailTemplates: false,
-        canManageOrganizationSettings: false,
-        canEditAdvisorPdf: false,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: false,
+        canManageUsers: false,
+        canManageSettings: false,
+        canViewAllLeads: false,
+        canTransferLeads: false,
+        canDeleteLeads: false,
       };
     case 'Téléprospecteur':
       return {
+        canAccessDashboard: true,
+        canAccessLeads: true,
+        canAccessClients: false,
+        canAccessAppointments: false,
         canAccessManagement: false,
-        canViewAllData: false,
-        canEditAllData: false,
-        canViewTeamData: false,
-        canEditOwnData: true,
-        canViewSharedAppointments: true,
-        canManagePartners: false,
-        canEditEmailTemplates: false,
-        canManageOrganizationSettings: false,
-        canEditAdvisorPdf: false,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: false,
+        canManageUsers: false,
+        canManageSettings: false,
+        canViewAllLeads: false,
+        canTransferLeads: false,
+        canDeleteLeads: false,
+      };
+    case 'Marketing':
+      return {
+        canAccessDashboard: false,
+        canAccessLeads: false,
+        canAccessClients: false,
+        canAccessAppointments: true,
+        canAccessManagement: false,
+        canAccessLibrary: true,
+        canUploadLibraryDocuments: true,
+        canManageUsers: false,
+        canManageSettings: false,
+        canViewAllLeads: false,
+        canTransferLeads: false,
+        canDeleteLeads: false,
       };
     default:
       return {
+        canAccessDashboard: false,
+        canAccessLeads: false,
+        canAccessClients: false,
+        canAccessAppointments: false,
         canAccessManagement: false,
-        canViewAllData: false,
-        canEditAllData: false,
-        canViewTeamData: false,
-        canEditOwnData: true,
-        canViewSharedAppointments: false,
-        canManagePartners: false,
-        canEditEmailTemplates: false,
-        canManageOrganizationSettings: false,
-        canEditAdvisorPdf: false,
+        canAccessLibrary: false,
+        canUploadLibraryDocuments: false,
+        canManageUsers: false,
+        canManageSettings: false,
+        canViewAllLeads: false,
+        canTransferLeads: false,
+        canDeleteLeads: false,
       };
   }
 }
@@ -148,16 +149,18 @@ export function getProfilePermissions(profileType: string): ProfilePermissions {
 export function getProfileBadgeColor(profileType: string): string {
   switch (profileType) {
     case 'Admin':
-      return 'bg-red-100 text-red-700';
+      return 'bg-red-100 text-red-700 border-red-200';
     case 'Manager':
-      return 'bg-orange-100 text-orange-700';
+      return 'bg-orange-100 text-orange-700 border-orange-200';
     case 'Gestion':
-      return 'bg-blue-100 text-blue-700';
+      return 'bg-blue-100 text-blue-700 border-blue-200';
     case 'Signataire':
-      return 'bg-green-100 text-green-700';
+      return 'bg-green-100 text-green-700 border-green-200';
     case 'Téléprospecteur':
-      return 'bg-gray-100 text-gray-700';
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+    case 'Marketing':
+      return 'bg-teal-100 text-teal-700 border-teal-200';
     default:
-      return 'bg-gray-100 text-gray-700';
+      return 'bg-gray-100 text-gray-700 border-gray-200';
   }
 }

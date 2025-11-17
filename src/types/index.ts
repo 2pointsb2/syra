@@ -118,3 +118,65 @@ export interface PredefinedMessage {
   created_at: string;
   updated_at: string;
 }
+
+export type DocumentCategory = 'PER' | 'Assurance Vie';
+
+export interface LibraryDocument {
+  id: string;
+  organization_id: string;
+  title: string;
+  file_url: string;
+  file_name: string;
+  file_size: number;
+  category: DocumentCategory;
+  uploaded_by: string;
+  uploaded_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MemoStatus = 'pending' | 'completed';
+
+export interface Memo {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  due_date: string;
+  due_time: string;
+  status: MemoStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export type UserProfileType = 'Admin' | 'Manager' | 'Gestion' | 'Signataire' | 'Téléprospecteur' | 'Marketing';
+
+export interface UserProfile {
+  id: string;
+  profile_type: UserProfileType;
+  first_name: string;
+  last_name: string;
+  email: string;
+  photo_url?: string;
+  team_manager_id?: string;
+  is_active: boolean;
+  advisor_brochure_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfilePermissions {
+  canAccessDashboard: boolean;
+  canAccessLeads: boolean;
+  canAccessClients: boolean;
+  canAccessAppointments: boolean;
+  canAccessManagement: boolean;
+  canAccessLibrary: boolean;
+  canUploadLibraryDocuments: boolean;
+  canManageUsers: boolean;
+  canManageSettings: boolean;
+  canViewAllLeads: boolean;
+  canTransferLeads: boolean;
+  canDeleteLeads: boolean;
+}

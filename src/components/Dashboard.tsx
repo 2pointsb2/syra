@@ -1,6 +1,8 @@
 import { Users, Phone, Calendar, FileCheck, Search, Filter, MoreHorizontal, Bell, Euro, TrendingUp, Clock, RefreshCw, X, StickyNote, CheckSquare, BarChart3, Upload, FileText, Plus } from 'lucide-react';
-import { useState } from 'react';
-import { Lead, Contract } from '../types';
+import { useState, useEffect } from 'react';
+import { Lead, Contract, Memo } from '../types';
+import { getMemosByUser, createMemo, deleteMemo } from '../services/memosService';
+import { getActiveProfile } from '../services/profileService';
 
 const mockLeads: Lead[] = [
   {
@@ -84,22 +86,14 @@ interface DashboardProps {
   onNavigateToLeads?: (filter: string | null) => void;
 }
 
-interface Memo {
+interface DisplayMemo {
   id: string;
   title: string;
+  description: string | null;
   date: string;
   time: string;
-  user: string;
   color: string;
 }
-
-const mockMemos: Memo[] = [
-  { id: '1', title: 'Rappeler Mme DAHCHAR pour finaliser RDV', date: "Aujourd'hui", time: '14:30', user: 'Vous', color: 'blue' },
-  { id: '2', title: 'Envoyer documents à M. DUPART', date: 'Demain', time: '10:00', user: 'Vous', color: 'violet' },
-  { id: '3', title: 'Relancer leads en attente de signature', date: 'Cette semaine', time: '16:00', user: 'Équipe', color: 'orange' },
-  { id: '4', title: 'Préparer rapport mensuel', date: '25 Oct', time: '09:00', user: 'Manager', color: 'green' },
-  { id: '5', title: 'Formation nouveaux produits', date: '28 Oct', time: '14:00', user: 'Équipe', color: 'amber' },
-];
 
 export default function Dashboard({ onNotificationClick, notificationCount, onNavigateToClients, onNavigateToLeads }: DashboardProps) {
   const [showMemosModal, setShowMemosModal] = useState(false);
@@ -109,13 +103,15 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
   const [volumePeriod, setVolumePeriod] = useState<'week' | 'month'>('week');
   const [leadsChartPeriod, setLeadsChartPeriod] = useState<'week' | 'month'>('week');
   const [fadingMemos, setFadingMemos] = useState<Set<string>>(new Set());
-  const [visibleMemos, setVisibleMemos] = useState<Set<string>>(() => new Set(mockMemos.map(m => m.id)));
+  const [visibleMemos, setVisibleMemos] = useState<Set<string>>(new Set());
   const [showAddMemoForm, setShowAddMemoForm] = useState(false);
   const [newMemoTitle, setNewMemoTitle] = useState('');
   const [newMemoDate, setNewMemoDate] = useState('');
   const [newMemoTime, setNewMemoTime] = useState('');
   const [newMemoDescription, setNewMemoDescription] = useState('');
-  const [memos, setMemos] = useState<Memo[]>(mockMemos);
+  const [memos, setMemos] = useState<DisplayMemo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const mockContracts: Contract[] = [
     {
@@ -235,47 +231,121 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
 
   const maxLeadsValue = Math.max(...leadsTransformationData.map(d => Math.max(d.leads, d.converted)));
 
-  const nextMemo = mockMemos[0];
+  useEffect(() => {
+    loadMemos();
+  }, []);
 
-  const handleMemoClick = (memoId: string) => {
+  const loadMemos = async () => {
+    try {
+      setLoading(true);
+      const profile = await getActiveProfile();
+      if (!profile) {
+        setLoading(false);
+        return;
+      }
+      setCurrentUserId(profile.id);
+
+      const dbMemos = await getMemosByUser(profile.id);
+      const displayMemos: DisplayMemo[] = dbMemos.map(memo => ({
+        id: memo.id,
+        title: memo.title,
+        description: memo.description,
+        date: formatDate(memo.due_date),
+        time: memo.due_time,
+        color: 'blue',
+      }));
+
+      setMemos(displayMemos);
+      setVisibleMemos(new Set(displayMemos.map(m => m.id)));
+    } catch (error) {
+      console.error('Erreur lors du chargement des mémos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Aujourd'hui";
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Demain';
+    } else {
+      return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    }
+  };
+
+  const nextMemo = memos[0];
+
+  const handleMemoClick = async (memoId: string) => {
     setFadingMemos(prev => new Set(prev).add(memoId));
-    setTimeout(() => {
-      setVisibleMemos(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(memoId);
-        return newSet;
-      });
-      setFadingMemos(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(memoId);
-        return newSet;
-      });
+    setTimeout(async () => {
+      try {
+        await deleteMemo(memoId);
+        setVisibleMemos(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(memoId);
+          return newSet;
+        });
+        setMemos(prev => prev.filter(m => m.id !== memoId));
+      } catch (error) {
+        console.error('Erreur lors de la suppression du mémo:', error);
+      } finally {
+        setFadingMemos(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(memoId);
+          return newSet;
+        });
+      }
     }, 400);
   };
 
-  const handleAddMemo = () => {
+  const handleAddMemo = async () => {
     if (!newMemoTitle || !newMemoDate || !newMemoTime) {
       alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    const newMemo: Memo = {
-      id: Date.now().toString(),
-      title: newMemoTitle,
-      date: newMemoDate,
-      time: newMemoTime,
-      user: 'Vous',
-      color: 'blue'
-    };
+    if (!currentUserId) {
+      alert('Erreur: utilisateur non identifié');
+      return;
+    }
 
-    setMemos(prev => [newMemo, ...prev]);
-    setVisibleMemos(prev => new Set([...Array.from(prev), newMemo.id]));
+    try {
+      const createdMemo = await createMemo(
+        currentUserId,
+        '1',
+        newMemoTitle,
+        newMemoDescription || null,
+        newMemoDate,
+        newMemoTime
+      );
 
-    setNewMemoTitle('');
-    setNewMemoDate('');
-    setNewMemoTime('');
-    setNewMemoDescription('');
-    setShowAddMemoForm(false);
+      const displayMemo: DisplayMemo = {
+        id: createdMemo.id,
+        title: createdMemo.title,
+        description: createdMemo.description,
+        date: formatDate(createdMemo.due_date),
+        time: createdMemo.due_time,
+        color: 'blue',
+      };
+
+      setMemos(prev => [displayMemo, ...prev]);
+      setVisibleMemos(prev => new Set([...Array.from(prev), displayMemo.id]));
+
+      setNewMemoTitle('');
+      setNewMemoDate('');
+      setNewMemoTime('');
+      setNewMemoDescription('');
+      setShowAddMemoForm(false);
+    } catch (error) {
+      console.error('Erreur lors de la création du mémo:', error);
+      alert('Erreur lors de la création du mémo');
+    }
   };
 
   return (
@@ -659,9 +729,11 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
                         <input type="checkbox" className={`mt-1 w-4 h-4 rounded focus:ring-${memo.color}-500 text-${memo.color}-600`} />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-900">{memo.title}</p>
+                          {memo.description && (
+                            <p className="text-sm text-gray-600 font-light mt-1.5 line-clamp-2">{memo.description}</p>
+                          )}
                           <div className="flex items-center gap-3 mt-2">
                             <span className="text-xs text-gray-600 font-light">{memo.date} - {memo.time}</span>
-                            <span className="text-xs text-gray-500 font-light">• {memo.user}</span>
                           </div>
                         </div>
                       </div>

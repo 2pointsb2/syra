@@ -20,6 +20,8 @@ import {
   Send,
   RefreshCw,
   Calculator,
+  BookOpen,
+  FileText,
 } from 'lucide-react';
 import ProfileSwitcher from './ProfileSwitcher';
 import { UserProfile, getActiveProfile, getProfilePermissions, getProfileBadgeColor } from '../services/profileService';
@@ -73,7 +75,13 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
 
   const permissions = currentProfile ? getProfilePermissions(currentProfile.profile_type) : null;
   const shouldShowManagement = permissions?.canAccessManagement ?? true;
+  const shouldShowDashboard = permissions?.canAccessDashboard ?? true;
+  const shouldShowLeads = permissions?.canAccessLeads ?? true;
+  const shouldShowClients = permissions?.canAccessClients ?? true;
+  const shouldShowAppointments = permissions?.canAccessAppointments ?? true;
+  const shouldShowLibrary = permissions?.canAccessLibrary ?? false;
   const isTeleprospecteur = currentProfile?.profile_type === 'Téléprospecteur';
+  const isMarketing = currentProfile?.profile_type === 'Marketing';
 
   const handleCollapseToggle = () => {
     const newCollapsedState = !isCollapsed;
@@ -86,25 +94,30 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
     setIsMobileMenuOpen(false);
   };
 
-  const mainMenuItems = isTeleprospecteur ? [] : [
+  const mainMenuItems = shouldShowDashboard ? [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-  ];
+  ] : [];
 
   const appointmentItems = [
-    { id: 'leads', label: 'Leads', icon: Target },
-    { id: 'calendrier', label: 'Agenda', icon: Calendar },
+    ...(shouldShowLeads ? [{ id: 'leads', label: 'Leads', icon: Target }] : []),
+    ...(shouldShowAppointments ? [{ id: 'calendrier', label: 'Agenda', icon: Calendar }] : []),
   ];
 
-  const meetingItems = isTeleprospecteur ? [] : [
+  const meetingItems = shouldShowAppointments && !isTeleprospecteur ? [
     { id: 'partenaires', label: 'Partenaires', icon: Handshake },
     { id: 'mise-en-relation', label: 'Mise en relation', icon: Send },
     { id: 'simulation-per', label: 'Simulation PER', icon: Calculator },
     { id: 'devoir-conseil', label: 'Devoir de conseil', icon: ClipboardCheck },
-  ];
+  ] : [];
 
-  const clientItems = [
+  const clientItems = shouldShowClients ? [
     { id: 'client', label: 'Clients', icon: Building2 },
-  ];
+  ] : [];
+
+  const libraryItems = shouldShowLibrary ? [
+    { id: 'bibliotheque', label: 'PER', icon: FileText, category: 'PER' },
+    { id: 'bibliotheque', label: 'Assurance Vie', icon: FileText, category: 'Assurance Vie' },
+  ] : [];
 
   const managementItems = [
     { id: 'utilisateurs', label: 'Utilisateurs', icon: Users },
@@ -312,36 +325,77 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
           </>
         )}
 
-        <div>
-          {!isCollapsed && (
-            <div className="px-3 mb-2">
-              <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
-                Suivi client
-              </span>
+        {clientItems.length > 0 && (
+          <>
+            <div>
+              {!isCollapsed && (
+                <div className="px-3 mb-2">
+                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                    Suivi client
+                  </span>
+                </div>
+              )}
+              <div className="space-y-1 mb-4">
+                {clientItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleMobileNavigate(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
+                        isActive
+                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
+                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                      } ${isCollapsed ? 'justify-center' : ''}`}
+                      title={isCollapsed ? item.label : undefined}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          )}
-          <div className="space-y-1 mb-4">
-            {clientItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentPage === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleMobileNavigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
-                    isActive
-                      ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                      : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
-                  {!isCollapsed && <span>{item.label}</span>}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+          </>
+        )}
+
+        {libraryItems.length > 0 && (
+          <>
+            <div>
+              {!isCollapsed && (
+                <div className="px-3 mb-2">
+                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                    Bibliothèque
+                  </span>
+                </div>
+              )}
+              <div className="space-y-1 mb-4">
+                {libraryItems.map((item, index) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.id;
+                  return (
+                    <button
+                      key={`${item.id}-${index}`}
+                      onClick={() => handleMobileNavigate(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
+                        isActive
+                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
+                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                      } ${isCollapsed ? 'justify-center' : ''}`}
+                      title={isCollapsed ? item.label : undefined}
+                    >
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+          </>
+        )}
 
         {shouldShowManagement && (
           <>
