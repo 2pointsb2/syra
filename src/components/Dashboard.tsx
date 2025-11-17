@@ -405,9 +405,9 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-gray-500 font-light mb-1">Mémo & Rappels</p>
                 <div className="flex items-baseline gap-2">
-                  <p className="text-xl font-light text-gray-900">{mockMemos.length}</p>
+                  <p className="text-xl font-light text-gray-900">{memos.length}</p>
                   <span className="text-xs font-light px-2 py-1 rounded-full bg-red-200/50 text-red-700 border border-red-300/30">
-                    {memos.length} total
+                    {memos.filter(m => visibleMemos.has(m.id)).length} actifs
                   </span>
                 </div>
               </div>
