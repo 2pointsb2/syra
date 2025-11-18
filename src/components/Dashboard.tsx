@@ -179,9 +179,9 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
   const repriseSuccess = mockContracts.filter(c => c.is_reprise && c.reprise_success).length;
   const repriseRate = reprises > 0 ? Math.round((repriseSuccess / reprises) * 100) : 0;
 
-  const totalLeads = mockLeads.length;
-  const contactedLeads = mockLeads.filter(l => l.status !== 'NRP' && l.status !== 'Sans Statut').length;
-  const convertedLeads = mockLeads.filter(l => l.status === 'Signé').length;
+  const totalLeads = 75;
+  const contactedLeads = 18;
+  const convertedLeads = 15;
   const transformationRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
   const kpis = [
@@ -217,22 +217,22 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
 
   const leadsTransformationData = leadsChartPeriod === 'week'
     ? [
-        { label: 'Lun', leads: 8, converted: 2 },
-        { label: 'Mar', leads: 12, converted: 3 },
-        { label: 'Mer', leads: 10, converted: 4 },
-        { label: 'Jeu', leads: 15, converted: 5 },
-        { label: 'Ven', leads: 11, converted: 3 },
-        { label: 'Sam', leads: 5, converted: 1 },
-        { label: 'Dim', leads: 3, converted: 0 },
+        { label: 'Lun', leads: 35, converted: 8 },
+        { label: 'Mar', leads: 42, converted: 10 },
+        { label: 'Mer', leads: 38, converted: 12 },
+        { label: 'Jeu', leads: 45, converted: 14 },
+        { label: 'Ven', leads: 40, converted: 11 },
+        { label: 'Sam', leads: 28, converted: 6 },
+        { label: 'Dim', leads: 20, converted: 4 },
       ]
     : [
-        { label: 'S1', leads: 45, converted: 12 },
-        { label: 'S2', leads: 52, converted: 15 },
-        { label: 'S3', leads: 48, converted: 18 },
-        { label: 'S4', leads: 55, converted: 20 },
+        { label: 'S1', leads: 280, converted: 65 },
+        { label: 'S2', leads: 310, converted: 75 },
+        { label: 'S3', leads: 295, converted: 82 },
+        { label: 'S4', leads: 325, converted: 90 },
       ];
 
-  const maxLeadsValue = Math.max(...leadsTransformationData.map(d => Math.max(d.leads, d.converted)));
+  const maxLeadsValue = leadsChartPeriod === 'week' ? 50 : 350;
 
   useEffect(() => {
     loadMemos();
@@ -579,9 +579,7 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
                 className="text-center p-4 bg-gradient-to-br from-amber-50 to-amber-100/30 rounded-xl cursor-pointer hover:shadow-md transition-all"
                 onClick={() => onNavigateToLeads?.('À rappeler')}
               >
-                <p className="text-3xl font-light text-gray-900">
-                  {mockLeads.filter(l => l.status === 'À rappeler' || l.status === 'NRP').length}
-                </p>
+                <p className="text-3xl font-light text-gray-900">14</p>
                 <p className="text-sm text-gray-600 font-light mt-1">À rappeler</p>
               </div>
             </div>
