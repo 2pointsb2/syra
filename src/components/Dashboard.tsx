@@ -611,25 +611,25 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
                 </button>
               </div>
             </div>
-            <div className="h-48">
+            <div className="h-64">
               <div className={`grid gap-3 h-full ${leadsChartPeriod === 'week' ? 'grid-cols-7' : 'grid-cols-4'}`}>
                 {leadsTransformationData.map((data, index) => (
-                  <div key={index} className="flex flex-col items-center">
+                  <div key={index} className="flex flex-col items-center h-full">
                     <span className="text-xs text-gray-500 font-light mb-2">{data.label}</span>
-                    <div className="flex-1 w-full flex items-end justify-center gap-1 relative">
-                      <div className="w-1/2 flex flex-col items-center justify-end">
+                    <div className="flex-1 w-full flex items-end justify-center gap-1 relative" style={{ minHeight: '180px' }}>
+                      <div className="w-1/2 flex flex-col items-center justify-end h-full">
                         <span className="text-[10px] text-blue-600 font-medium mb-1">{data.leads}</span>
                         <div
                           className="w-full bg-gradient-to-t from-blue-400 to-blue-300 rounded-t-lg transition-all duration-500 ease-out hover:from-blue-500 hover:to-blue-400 cursor-pointer shadow-sm"
-                          style={{ height: `${(data.leads / maxLeadsValueForScale) * 100}%`, minHeight: '15px' }}
+                          style={{ height: `${(data.leads / maxLeadsValueForScale) * 100}%`, minHeight: '20px' }}
                           title={`${data.leads} leads`}
                         />
                       </div>
-                      <div className="w-1/2 flex flex-col items-center justify-end">
+                      <div className="w-1/2 flex flex-col items-center justify-end h-full">
                         <span className="text-[10px] text-violet-600 font-medium mb-1">{data.converted}</span>
                         <div
                           className="w-full bg-gradient-to-t from-violet-400 to-violet-300 rounded-t-lg transition-all duration-500 ease-out hover:from-violet-500 hover:to-violet-400 cursor-pointer shadow-sm"
-                          style={{ height: `${(data.converted / maxLeadsValueForScale) * 100}%`, minHeight: '10px' }}
+                          style={{ height: `${(data.converted / maxLeadsValueForScale) * 100}%`, minHeight: '15px' }}
                           title={`${data.converted} convertis`}
                         />
                       </div>
