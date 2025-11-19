@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-gray-50 via-gray-100 to-white;
+    @apply bg-gradient-to-br from-gray-50 via-gray-100 to-white dark:from-gray-900 dark:via-gray-950 dark:to-black;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
     font-weight: 300;
   }
@@ -12,7 +12,7 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/95 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20;
+    @apply bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/30;
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -92,11 +92,11 @@
   }
 
   .soft-border {
-    @apply border border-gray-200/50;
+    @apply border border-gray-200/50 dark:border-gray-700/50;
   }
 
   .workflow-line {
-    @apply border-2 border-dashed border-gray-300/50 rounded-full;
+    @apply border-2 border-dashed border-gray-300/50 dark:border-gray-600/50 rounded-full;
   }
 
   .animate-blob {
@@ -176,6 +176,11 @@
     animation: modalEnter 200ms ease-out forwards;
   }
 
+  .dark .modal {
+    background: rgba(31, 41, 55, 0.85);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
   @keyframes modalEnter {
     to {
       transform: translate(-50%, -50%) scale(1);
@@ -185,6 +190,9 @@
   @supports not (backdrop-filter: blur(6px)) {
     .modal {
       background: rgba(255, 255, 255, 0.96);
+    }
+    .dark .modal {
+      background: rgba(31, 41, 55, 0.98);
     }
   }
 
@@ -198,11 +206,20 @@
     border-radius: 20px 20px 0 0;
   }
 
+  .dark .modal-header {
+    background: rgb(31, 41, 55);
+    border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+  }
+
   .modal-title {
     font-size: 1.25rem;
     font-weight: 300;
     color: rgb(31, 41, 55);
     margin: 0;
+  }
+
+  .dark .modal-title {
+    color: rgb(243, 244, 246);
   }
 
   .modal-close-btn {
@@ -219,8 +236,17 @@
     color: rgb(75, 85, 99);
   }
 
+  .dark .modal-close-btn {
+    background: rgb(55, 65, 81);
+    color: rgb(209, 213, 219);
+  }
+
   .modal-close-btn:hover {
     background: rgb(229, 231, 235);
+  }
+
+  .dark .modal-close-btn:hover {
+    background: rgb(75, 85, 99);
   }
 
   .modal-close-btn:focus-visible {

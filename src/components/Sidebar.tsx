@@ -24,6 +24,7 @@ import {
   FileText,
 } from 'lucide-react';
 import ProfileSwitcher from './ProfileSwitcher';
+import ThemeToggle from './ThemeToggle';
 import { UserProfile, getActiveProfile, getProfilePermissions, getProfileBadgeColor } from '../services/profileService';
 import { getOrganizationSettings } from '../services/organizationSettingsService';
 
@@ -144,7 +145,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
         />
       )}
 
-      <div className={`${isCollapsed ? 'w-20' : 'w-72'} bg-gradient-to-b from-gray-50/80 to-white/80 to-white/80 backdrop-blur-xl flex flex-col h-screen fixed left-0 top-0 transition-all duration-300 border-r border-gray-200/50 z-40 lg:translate-x-0 ${
+      <div className={`${isCollapsed ? 'w-20' : 'w-72'} bg-gradient-to-b from-gray-50/80 to-white/80 dark:from-gray-900/95 dark:to-gray-950/95 backdrop-blur-xl flex flex-col h-screen fixed left-0 top-0 transition-all duration-300 border-r border-gray-200/50 dark:border-gray-700/50 z-40 lg:translate-x-0 ${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
       <div className="p-6 relative">
@@ -156,21 +157,21 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
           />
           <button
             onClick={handleCollapseToggle}
-            className={`hidden lg:block absolute ${isCollapsed ? 'right-[-2.5rem]' : 'right-[-2.5rem]'} top-1/2 -translate-y-1/2 p-1.5 bg-white hover:bg-gray-50 rounded-full transition-all shadow-md border border-gray-200/50 z-10`}
+            className={`hidden lg:block absolute ${isCollapsed ? 'right-[-2.5rem]' : 'right-[-2.5rem]'} top-1/2 -translate-y-1/2 p-1.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full transition-all shadow-md border border-gray-200/50 dark:border-gray-700/50 z-10`}
           >
             {isCollapsed ? (
-              <ChevronRight className="w-4 h-4 text-gray-600" />
+              <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             ) : (
-              <ChevronLeft className="w-4 h-4 text-gray-600" />
+              <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             )}
           </button>
         </div>
 
         {!isCollapsed && (
-          <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-lg border border-white/20 overflow-hidden transition-all duration-300">
+          <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/30 overflow-hidden transition-all duration-300">
             <button
               onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-              className="w-full p-4 hover:bg-white/50 transition-colors"
+              className="w-full p-4 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-violet-500 shadow-md">
@@ -181,7 +182,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                   />
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-light text-gray-900 truncate">
+                  <p className="text-sm font-light text-gray-900 dark:text-gray-100 truncate">
                     {currentProfile ? `${currentProfile.first_name} ${currentProfile.last_name}` : 'Moche Azran'}
                   </p>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-light ${currentProfile ? getProfileBadgeColor(currentProfile.profile_type) : 'bg-blue-100 text-blue-700'}`}>
@@ -189,9 +190,9 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                   </span>
                 </div>
                 {isAccountMenuOpen ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <ChevronUp className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <ChevronDown className="w-5 h-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
                 )}
               </div>
             </button>
@@ -201,15 +202,15 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                 isAccountMenuOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="border-t border-gray-200/30 px-4 py-3 space-y-2">
+              <div className="border-t border-gray-200/30 dark:border-gray-700/30 px-4 py-3 space-y-2">
                 <button
                   onClick={() => {
                     setShowProfileSwitcher(true);
                     setIsAccountMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 text-sm text-gray-700 hover:text-gray-900 transition-colors font-light"
+                  className="w-full flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-light"
                 >
-                  <RefreshCw className="w-4 h-4 text-gray-400" />
+                  <RefreshCw className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span>Changer de profil</span>
                 </button>
                 <button
@@ -217,9 +218,9 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                     handleMobileNavigate('parametres');
                     setIsAccountMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 text-sm text-gray-700 hover:text-gray-900 transition-colors font-light"
+                  className="w-full flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-light"
                 >
-                  <Settings className="w-4 h-4 text-gray-400" />
+                  <Settings className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <span>Paramètres</span>
                 </button>
               </div>
@@ -241,25 +242,25 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                     onClick={() => handleMobileNavigate(item.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                       isActive
-                        ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                        : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                        ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                     } ${isCollapsed ? 'justify-center' : ''}`}
                     title={isCollapsed ? item.label : undefined}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                     {!isCollapsed && <span>{item.label}</span>}
                   </button>
                 );
               })}
             </div>
-            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+            {!isCollapsed && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
           </>
         )}
 
         <div>
           {!isCollapsed && (
             <div className="px-3 mb-2">
-              <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+              <span className="text-xs font-light text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Prise de rendez-vous
               </span>
             </div>
@@ -274,12 +275,12 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                   onClick={() => handleMobileNavigate(item.id)}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                     isActive
-                      ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                      : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                      ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                   } ${isCollapsed ? 'justify-center' : ''}`}
                   title={isCollapsed ? item.label : undefined}
                 >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                   {!isCollapsed && <span>{item.label}</span>}
                 </button>
               );
@@ -287,14 +288,14 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
           </div>
         </div>
 
-        {!isCollapsed && !isIndicateurAffaires && !isMarketing && <div className="border-t border-gray-200/30 my-4"></div>}
+        {!isCollapsed && !isIndicateurAffaires && !isMarketing && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
 
         {meetingItems.length > 0 && (
           <>
             <div>
               {!isCollapsed && (
                 <div className="px-3 mb-2">
-                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs font-light text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     Rendez-vous
                   </span>
                 </div>
@@ -309,19 +310,19 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                       onClick={() => handleMobileNavigate(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                         isActive
-                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                          ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </button>
                   );
                 })}
               </div>
             </div>
-            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+            {!isCollapsed && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
           </>
         )}
 
@@ -330,7 +331,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
             <div>
               {!isCollapsed && (
                 <div className="px-3 mb-2">
-                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs font-light text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     Suivi client
                   </span>
                 </div>
@@ -345,19 +346,19 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                       onClick={() => handleMobileNavigate(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                         isActive
-                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                          ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </button>
                   );
                 })}
               </div>
             </div>
-            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+            {!isCollapsed && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
           </>
         )}
 
@@ -366,7 +367,7 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
             <div>
               {!isCollapsed && (
                 <div className="px-3 mb-2">
-                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs font-light text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     Bibliothèque
                   </span>
                 </div>
@@ -381,30 +382,30 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                       onClick={() => handleMobileNavigate(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                         isActive
-                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                          ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </button>
                   );
                 })}
               </div>
             </div>
-            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+            {!isCollapsed && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
           </>
         )}
 
         {shouldShowManagement && (
           <>
-            {!isCollapsed && <div className="border-t border-gray-200/30 my-4"></div>}
+            {!isCollapsed && <div className="border-t border-gray-200/30 dark:border-gray-700/30 my-4"></div>}
 
             <div>
               {!isCollapsed && (
                 <div className="px-3 mb-2">
-                  <span className="text-xs font-light text-gray-400 uppercase tracking-wider">
+                  <span className="text-xs font-light text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     Management
                   </span>
                 </div>
@@ -419,12 +420,12 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
                       onClick={() => handleMobileNavigate(item.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all ${
                         isActive
-                          ? 'bg-white/80 backdrop-blur-sm text-gray-900 shadow-md font-light'
-                          : 'text-gray-600 hover:bg-white/50 hover:text-gray-900 font-light'
+                          ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-gray-100 shadow-md font-light'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-gray-100 font-light'
                       } ${isCollapsed ? 'justify-center' : ''}`}
                       title={isCollapsed ? item.label : undefined}
                     >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`} />
+                      <Icon className={`w-5 h-5 ${isActive ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`} />
                       {!isCollapsed && <span>{item.label}</span>}
                     </button>
                   );
@@ -435,25 +436,26 @@ export default function Sidebar({ currentPage, onNavigate, onCollapseChange, onL
         )}
       </nav>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 space-y-2">
+        <ThemeToggle isCollapsed={isCollapsed} />
         <button
           onClick={onLogout}
-          className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all text-red-600 hover:bg-red-50/50 hover:text-red-700 font-light ${
+          className={`w-full flex items-center gap-3 px-4 py-3 text-sm rounded-2xl transition-all text-red-600 dark:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 font-light ${
             isCollapsed ? 'justify-center' : ''
           }`}
           title={isCollapsed ? 'Déconnexion' : undefined}
         >
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
-            <LogOut className="w-5 h-5 text-red-600" />
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/40 dark:to-red-800/40 flex items-center justify-center">
+            <LogOut className="w-5 h-5 text-red-600 dark:text-red-400" />
           </div>
           {!isCollapsed && <span>Déconnexion</span>}
         </button>
       </div>
 
       {!isCollapsed && (
-        <div className="p-4 border-t border-gray-200/30">
-          <p className="text-xs text-center text-gray-400 font-light">
-            Développé par <span className="text-blue-500 font-normal">SYRA.io</span>
+        <div className="p-4 border-t border-gray-200/30 dark:border-gray-700/30">
+          <p className="text-xs text-center text-gray-400 dark:text-gray-500 font-light">
+            Développé par <span className="text-blue-500 dark:text-blue-400 font-normal">SYRA.io</span>
           </p>
         </div>
       )}
