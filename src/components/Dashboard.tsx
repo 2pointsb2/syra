@@ -94,6 +94,7 @@ interface DisplayMemo {
   date: string;
   time: string;
   color: string;
+  isOverdue: boolean;
 }
 
 export default function Dashboard({ onNotificationClick, notificationCount, onNavigateToClients, onNavigateToLeads }: DashboardProps) {
@@ -247,14 +248,22 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
       }
 
       const dbMemos = await getMemosByUser();
-      const displayMemos: DisplayMemo[] = dbMemos.map(memo => ({
-        id: memo.id,
-        title: memo.title,
-        description: memo.description,
-        date: formatDate(memo.due_date),
-        time: memo.due_time,
-        color: 'blue',
-      }));
+      const now = new Date();
+
+      const displayMemos: DisplayMemo[] = dbMemos.map(memo => {
+        const memoDateTime = new Date(`${memo.due_date}T${memo.due_time}`);
+        const isOverdue = memoDateTime < now;
+
+        return {
+          id: memo.id,
+          title: memo.title,
+          description: memo.description,
+          date: formatDate(memo.due_date),
+          time: memo.due_time,
+          color: 'blue',
+          isOverdue,
+        };
+      });
 
       setMemos(displayMemos);
     } catch (error) {
@@ -362,6 +371,9 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
         newMemoTime
       );
 
+      const now = new Date();
+      const memoDateTime = new Date(`${createdMemo.due_date}T${createdMemo.due_time}`);
+
       const displayMemo: DisplayMemo = {
         id: createdMemo.id,
         title: createdMemo.title,
@@ -369,6 +381,7 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
         date: formatDate(createdMemo.due_date),
         time: createdMemo.due_time,
         color: 'blue',
+        isOverdue: memoDateTime < now,
       };
 
       setMemos(prev => [displayMemo, ...prev]);
@@ -772,14 +785,21 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{memo.title}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{memo.title}</p>
+                                {memo.isOverdue && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200 border border-red-200 dark:border-red-800">
+                                    DÉPASSÉ
+                                  </span>
+                                )}
+                              </div>
                               {memo.description && (
                                 <p className="text-sm text-gray-600 dark:text-gray-400 font-light mt-1.5 leading-relaxed">{memo.description}</p>
                               )}
                             </div>
                             <div className="text-right flex-shrink-0">
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-light">{memo.date}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-light mt-0.5">{memo.time}</p>
+                              <p className={`text-xs font-light ${memo.isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>{memo.date}</p>
+                              <p className={`text-xs font-light mt-0.5 ${memo.isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>{memo.time}</p>
                             </div>
                           </div>
                         </div>
