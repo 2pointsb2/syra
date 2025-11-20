@@ -248,6 +248,7 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
       }
 
       const dbMemos = await getMemosByUser();
+      console.log('📋 Mémos chargés depuis la DB:', dbMemos.length, dbMemos);
       const now = new Date();
 
       const displayMemos: DisplayMemo[] = dbMemos.map(memo => {
@@ -265,9 +266,10 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
         };
       });
 
+      console.log('📋 Mémos transformés pour l\'affichage:', displayMemos.length, displayMemos);
       setMemos(displayMemos);
     } catch (error) {
-      console.error('Erreur lors du chargement des mémos:', error);
+      console.error('❌ Erreur lors du chargement des mémos:', error);
     } finally {
       setLoading(false);
     }
@@ -668,7 +670,7 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
           <div className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="glass-card floating-shadow p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-light text-gray-900 dark:text-gray-100">Mémos & Rappels</h3>
+                <h3 className="text-xl font-light text-gray-900 dark:text-gray-100">Mémos & Rappels ({memos.length})</h3>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowAddMemoForm(!showAddMemoForm)}
@@ -757,7 +759,14 @@ export default function Dashboard({ onNotificationClick, notificationCount, onNa
                 </div>
               )}
 
-              {memos.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-800 dark:to-blue-700 flex items-center justify-center shadow-sm animate-pulse">
+                    <StickyNote className="w-9 h-9 text-blue-500 dark:text-blue-300" />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-light">Chargement des mémos...</p>
+                </div>
+              ) : memos.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center shadow-sm">
                     <StickyNote className="w-9 h-9 text-gray-400 dark:text-gray-500" />
