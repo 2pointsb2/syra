@@ -581,9 +581,9 @@ export default function DevoirConseil({ onNotificationClick, notificationCount }
         </div>
         <button
           onClick={onNotificationClick}
-          className="w-10 h-10 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm relative flex-shrink-0"
+          className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105 relative flex-shrink-0"
         >
-          <Bell className="w-5 h-5 text-gray-600" />
+          <Bell className="w-5 h-5 text-gray-900 dark:text-gray-300" />
           {notificationCount > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-light shadow-lg animate-pulse">
               {notificationCount}
@@ -769,50 +769,50 @@ export default function DevoirConseil({ onNotificationClick, notificationCount }
                           setEditingConseil(conseil);
                           setShowNewDevoirForm(true);
                         }}
-                        className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm"
+                        className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105"
                         title="Modifier"
                       >
-                        <Pencil className="w-4 h-4 text-gray-600" />
+                        <Pencil className="w-4 h-4 text-gray-900 dark:text-gray-300" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setViewingConseil(conseil);
                         }}
-                        className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm"
+                        className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105"
                         title="Consulter"
                       >
-                        <Eye className="w-4 h-4 text-gray-600" />
+                        <Eye className="w-4 h-4 text-gray-900 dark:text-gray-300" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           console.log('Renvoyer le devoir de conseil:', conseil.id);
                         }}
-                        className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm"
+                        className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105"
                         title="Renvoyer par email"
                       >
-                        <Mail className="w-4 h-4 text-gray-600" />
+                        <Mail className="w-4 h-4 text-gray-900 dark:text-gray-300" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleGeneratePDF(conseil);
                         }}
-                        className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm"
+                        className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105"
                         title="Télécharger PDF"
                       >
-                        <Download className="w-4 h-4 text-gray-600" />
+                        <Download className="w-4 h-4 text-gray-900 dark:text-gray-300" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(conseil.id!);
                         }}
-                        className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm"
+                        className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105"
                         title="Supprimer"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600" />
+                        <Trash2 className="w-4 h-4 text-gray-900 dark:text-gray-300" />
                       </button>
                     </div>
                   </div>

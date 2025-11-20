@@ -423,11 +423,11 @@ function LeadCard({ lead, onUpdate, showOwner }: { lead: Lead; onUpdate: (leadId
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button onClick={() => setShowAppointmentModal(true)} className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm">
-              <CalendarDays className="w-4 h-4 text-gray-600 dark:text-[#101828]" />
+            <button onClick={() => setShowAppointmentModal(true)} className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105">
+              <CalendarDays className="w-4 h-4 text-gray-900 dark:text-gray-300" />
             </button>
-            <button onClick={() => setShowReminderModal(true)} className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm">
-              <BellRing className="w-4 h-4 text-gray-600 dark:text-[#101828]" />
+            <button onClick={() => setShowReminderModal(true)} className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center transition-all hover:scale-105">
+              <BellRing className="w-4 h-4 text-gray-900 dark:text-gray-300" />
             </button>
           </div>
         </div>
