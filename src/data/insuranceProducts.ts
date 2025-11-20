@@ -34,6 +34,12 @@ export const INSURANCE_COMPANIES: CompanyConfig[] = [
         comparativeProposals: ['April', 'SwissLife', 'Alptis']
       },
       {
+        name: 'Tempo Décès',
+        remuneration: '—',
+        fields: [],
+        comparativeProposals: ['SwissLife Prévoyance', 'April Prévoyance', 'Entoria']
+      },
+      {
         name: 'Tempo Succès',
         remuneration: '—',
         fields: [],
@@ -235,12 +241,30 @@ export const INSURANCE_COMPANIES: CompanyConfig[] = [
         comparativeProposals: ['Zenioo', 'Neoliane']
       },
       {
+        name: 'Mutuelle (individuelle)',
+        remuneration: '30/10',
+        fields: [],
+        comparativeProposals: ['SwissLife', 'Neoliane', 'UNIM']
+      },
+      {
         name: 'Mutuelle Collective',
         remuneration: 'Linéaire (frais à déterminer)',
         fields: [
           { type: 'frais_a_definir', label: 'Frais à déterminer', required: false }
         ],
         comparativeProposals: ['SwissLife', 'Neoliane']
+      },
+      {
+        name: 'Prévoyance 30/10',
+        remuneration: '30/10',
+        fields: [],
+        comparativeProposals: ['SwissLife', 'Neoliane', 'Alptis']
+      },
+      {
+        name: 'Prévoyance 40/10',
+        remuneration: '40/10',
+        fields: [],
+        comparativeProposals: ['SwissLife', 'Neoliane', 'Alptis']
       },
       {
         name: 'IARD',
@@ -278,7 +302,7 @@ export const INSURANCE_COMPANIES: CompanyConfig[] = [
     name: 'OMEGA (SPVIE)',
     products: [
       {
-        name: 'OMEGA',
+        name: 'Assurance Vie',
         remuneration: 'Versement initial + programmé + frais sur chacun',
         fields: [
           { type: 'versement_initial', label: 'Versement initial (€)', required: false },
@@ -310,6 +334,23 @@ export const INSURANCE_COMPANIES: CompanyConfig[] = [
           { type: 'versement_initial', label: 'Versement initial (€)', required: false }
         ],
         comparativeProposals: ['SCPI', 'Generali']
+      }
+    ]
+  },
+  {
+    name: 'UNIM',
+    products: [
+      {
+        name: 'Mutuelle',
+        remuneration: '30/10',
+        fields: [],
+        comparativeProposals: ['April', 'SwissLife', 'Neoliane']
+      },
+      {
+        name: 'Prévoyance',
+        remuneration: '—',
+        fields: [],
+        comparativeProposals: ['SwissLife', 'Neoliane', 'Alptis']
       }
     ]
   }
