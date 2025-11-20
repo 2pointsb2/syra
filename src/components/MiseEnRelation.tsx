@@ -50,6 +50,7 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
   const [canEditTemplates, setCanEditTemplates] = useState(false);
   const [canEditAdvisorPdf, setCanEditAdvisorPdf] = useState(false);
+  const [canEditCompanyBrochure, setCanEditCompanyBrochure] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -64,11 +65,14 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
         const permissions = getProfilePermissions(profile.profile_type);
         setCanEditTemplates(permissions.canEditEmailTemplates);
         setCanEditAdvisorPdf(permissions.canEditAdvisorPdf);
+        const canEditBrochure = ['Admin', 'Marketing', 'Manager'].includes(profile.profile_type);
+        setCanEditCompanyBrochure(canEditBrochure);
       }
     } catch (err) {
       console.error('Error loading profile:', err);
       setCanEditTemplates(false);
       setCanEditAdvisorPdf(false);
+      setCanEditCompanyBrochure(false);
     }
   };
 
@@ -251,9 +255,9 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
                       <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Plaquette Bienviyance</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 truncate">{plaquettePdf}</p>
-                      {canEditTemplates && (
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Plaquette entreprise</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{plaquettePdf}</p>
+                      {canEditCompanyBrochure && (
                         <>
                           <button
                             onClick={() => plaquetteFileInputRef.current?.click()}
@@ -281,8 +285,8 @@ export default function MiseEnRelation({ onNotificationClick, notificationCount 
                       <FileText className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">Moche Azran</p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 truncate">{advisorPdf}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Plaquette Conseiller</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{advisorPdf}</p>
                       {canEditAdvisorPdf && (
                         <>
                           <button

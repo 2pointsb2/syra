@@ -342,22 +342,6 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                       {user.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </div>
-
-                  <div>
-                    <p className="text-xs text-gray-600 font-light mb-2">Listes assignées</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {mockListAssignments[user.id]?.slice(0, 3).map((list, idx) => (
-                        <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-white text-gray-700 border border-gray-200 font-light">
-                          {list}
-                        </span>
-                      ))}
-                      {mockListAssignments[user.id]?.length > 3 && (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border border-gray-200 font-light">
-                          +{mockListAssignments[user.id].length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
@@ -371,7 +355,6 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                   <th className="px-6 py-4 text-left text-xs font-light text-gray-600 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-4 text-left text-xs font-light text-gray-600 uppercase tracking-wider">Rôle</th>
                   <th className="px-6 py-4 text-left text-xs font-light text-gray-600 uppercase tracking-wider">Activité</th>
-                  <th className="px-6 py-4 text-left text-xs font-light text-gray-600 uppercase tracking-wider">Listes assignées</th>
                   <th className="px-6 py-4 text-left text-xs font-light text-gray-600 uppercase tracking-wider"></th>
                 </tr>
               </thead>
@@ -406,20 +389,6 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                       }`}>
                         {user.is_active ? 'Actif' : 'Inactif'}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1.5 max-w-md">
-                        {mockListAssignments[user.id]?.slice(0, 3).map((list, idx) => (
-                          <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-white text-gray-700 border border-gray-200 font-light">
-                            {list}
-                          </span>
-                        ))}
-                        {mockListAssignments[user.id]?.length > 3 && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 border border-gray-200 font-light">
-                            +{mockListAssignments[user.id].length - 3}
-                          </span>
-                        )}
-                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <button className="w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center transition-all hover:scale-105 shadow-sm">
@@ -487,19 +456,19 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                 <select
                   value={formData.role}
                   onChange={(e) => {
-                    setFormData({ ...formData, role: e.target.value as 'gestion' | 'signataire' | 'indicateur_affaires' });
+                    setFormData({ ...formData, role: e.target.value as 'gestion' | 'signataire' | 'indicateur_affaires' | 'marketing' });
                     setBrochureFile(null);
                   }}
                   className="w-full px-4 py-2 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
                 >
-                  <option value="gestion">Gestion</option>
-                  <option value="signataire">Signataire</option>
                   <option value="indicateur_affaires">Indicateur d'affaires</option>
+                  <option value="signataire">Signataire</option>
+                  <option value="gestion">Gestion</option>
+                  <option value="marketing">Marketing</option>
                 </select>
               </div>
-              {formData.role === 'signataire' && (
-                <div>
-                  <label className="block text-sm font-light text-gray-700 mb-2">Plaquette signataire (PDF)</label>
+              <div>
+                <label className="block text-sm font-light text-gray-700 mb-2">Plaquette conseiller (PDF)</label>
                   <div className="border border-gray-200 rounded-2xl p-4 bg-white">
                     {!brochureFile ? (
                       <label className="flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 rounded-xl p-4 transition-colors">
@@ -542,30 +511,6 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-light text-gray-700 mb-2">Listes de leads assignées</label>
-                <div className="border border-gray-200 rounded-2xl p-3 bg-white max-h-48 overflow-y-auto">
-                  <div className="space-y-2">
-                    {availableLists.map((list) => (
-                      <label key={list} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={formData.assigned_lists.includes(list)}
-                          onChange={() => toggleListInFormData(list)}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-400/50"
-                        />
-                        <span className="text-sm font-light text-gray-700">{list}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {formData.assigned_lists.length > 0 && (
-                  <p className="text-xs text-gray-500 font-light mt-2">
-                    {formData.assigned_lists.length} liste{formData.assigned_lists.length > 1 ? 's' : ''} sélectionnée{formData.assigned_lists.length > 1 ? 's' : ''}
-                  </p>
-                )}
               </div>
               <div className="flex gap-3 mt-6">
                 <button
@@ -653,19 +598,19 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                 <select
                   value={editFormData.role}
                   onChange={(e) => {
-                    setEditFormData({ ...editFormData, role: e.target.value as 'gestion' | 'signataire' | 'indicateur_affaires' });
+                    setEditFormData({ ...editFormData, role: e.target.value as 'gestion' | 'signataire' | 'indicateur_affaires' | 'marketing' });
                     setEditBrochureFile(null);
                   }}
                   className="w-full px-4 py-2 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
                 >
-                  <option value="gestion">Gestion</option>
-                  <option value="signataire">Signataire</option>
                   <option value="indicateur_affaires">Indicateur d'affaires</option>
+                  <option value="signataire">Signataire</option>
+                  <option value="gestion">Gestion</option>
+                  <option value="marketing">Marketing</option>
                 </select>
               </div>
-              {editFormData.role === 'signataire' && (
-                <div>
-                  <label className="block text-sm font-light text-gray-700 mb-2">Plaquette signataire (PDF)</label>
+              <div>
+                <label className="block text-sm font-light text-gray-700 mb-2">Plaquette conseiller (PDF)</label>
                   <div className="border border-gray-200 rounded-2xl p-4 bg-white space-y-3">
                     {existingBrochureUrl && !editBrochureFile && (
                       <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
@@ -735,8 +680,7 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+              </div>
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -747,29 +691,6 @@ export default function Utilisateurs({ onNotificationClick, notificationCount }:
                   />
                   <span className="text-sm font-light text-gray-700">Utilisateur actif</span>
                 </label>
-              </div>
-              <div>
-                <label className="block text-sm font-light text-gray-700 mb-2">Listes de leads assignées</label>
-                <div className="border border-gray-200 rounded-2xl p-3 bg-white max-h-48 overflow-y-auto">
-                  <div className="space-y-2">
-                    {availableLists.map((list) => (
-                      <label key={list} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-xl transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={editFormData.assigned_lists.includes(list)}
-                          onChange={() => toggleListInEditFormData(list)}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-400/50"
-                        />
-                        <span className="text-sm font-light text-gray-700">{list}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {editFormData.assigned_lists.length > 0 && (
-                  <p className="text-xs text-gray-500 font-light mt-2">
-                    {editFormData.assigned_lists.length} liste{editFormData.assigned_lists.length > 1 ? 's' : ''} sélectionnée{editFormData.assigned_lists.length > 1 ? 's' : ''}
-                  </p>
-                )}
               </div>
               <div className="flex gap-3 mt-6">
                 <button
