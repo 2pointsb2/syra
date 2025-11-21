@@ -1,7 +1,8 @@
-import { Plus, Search, Bell, Eye, Edit2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Bell, Eye, Edit2, MoreHorizontal, Users } from 'lucide-react';
 import { useState } from 'react';
 import AddListModal from './AddListModal';
 import ViewListLeadsModal from './ViewListLeadsModal';
+import LeadManagementModal from './LeadManagementModal';
 import { mockUsers } from '../data/mockUsers';
 
 interface Lead {
@@ -64,6 +65,7 @@ export default function Listes({ onNotificationClick, notificationCount }: Liste
   const [mockLists, setMockLists] = useState<ListData[]>(initialMockLists);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showLeadManagementModal, setShowLeadManagementModal] = useState(false);
   const [selectedList, setSelectedList] = useState<ListData | null>(null);
   const [editingList, setEditingList] = useState<ListData | null>(null);
 
@@ -121,23 +123,32 @@ export default function Listes({ onNotificationClick, notificationCount }: Liste
 
       <div className="p-4 md:p-6 lg:p-8">
         <div className="glass-card floating-shadow overflow-hidden">
-          <div className="p-4 md:p-6 border-b border-gray-200">
-            <div className="flex items-center gap-4">
+          <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Rechercher une liste..."
-                  className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light text-gray-900 dark:text-gray-100"
                 />
               </div>
-              <button
-                onClick={handleAddNew}
-                className="px-3 md:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs md:text-sm font-light hover:from-blue-600 hover:to-blue-700 flex items-center gap-2 shadow-md transition-all hover:scale-105 whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4" />
-                Ajouter une liste
-              </button>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => setShowLeadManagementModal(true)}
+                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-xs md:text-sm font-light hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2 transition-all hover:scale-105 whitespace-nowrap"
+                >
+                  <Users className="w-4 h-4" />
+                  Gestion des leads
+                </button>
+                <button
+                  onClick={handleAddNew}
+                  className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs md:text-sm font-light hover:from-blue-600 hover:to-blue-700 flex items-center justify-center gap-2 shadow-md transition-all hover:scale-105 whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter une liste
+                </button>
+              </div>
             </div>
           </div>
 
@@ -316,6 +327,17 @@ export default function Listes({ onNotificationClick, notificationCount }: Liste
           }}
           listName={selectedList.name}
           leads={selectedList.leads}
+        />
+      )}
+
+      {showLeadManagementModal && (
+        <LeadManagementModal
+          onClose={() => setShowLeadManagementModal(false)}
+          lists={mockLists.map(list => ({
+            id: list.id,
+            name: list.name,
+            lead_count: list.lead_count
+          }))}
         />
       )}
     </div>
