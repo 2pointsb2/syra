@@ -25,7 +25,7 @@ export interface Lead {
   last_name: string;
   email?: string;
   phone: string;
-  status: 'NRP' | 'Sans Statut' | 'A rappeler' | 'RDV pris' | 'Signé' | 'Autres';
+  status: 'Sans statut' | 'NRP' | 'Nul' | 'À rappeler' | 'Intéressé' | 'RDV pris' | 'RDV honoré' | 'Signé' | 'RDV manqué' | 'Faux numéro' | 'Pas intéressé';
   nrp_count?: number;
   owner?: string;
   owner_since?: string;
