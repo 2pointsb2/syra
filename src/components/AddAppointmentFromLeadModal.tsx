@@ -28,7 +28,6 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
   const [location, setLocation] = useState('');
   const [appointmentType, setAppointmentType] = useState('consultation');
   const [enableReminder, setEnableReminder] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const [signataires, setSignataires] = useState<UserProfile[]>([]);
   const [selectedSignataire, setSelectedSignataire] = useState<string>('');
@@ -179,9 +178,6 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
       return;
     }
 
-    const dateString = selectedDate.toISOString().split('T')[0];
-    const endTime = calculateEndTime(selectedTimeSlot);
-
     try {
       const { data: currentLead, error: leadError } = await supabase
         .from('leads')
@@ -198,18 +194,6 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
         return;
       }
 
-      const { error: availabilityError } = await supabase
-        .from('signataire_disponibilites')
-        .insert({
-          signataire_id: selectedSignataire,
-          appointment_date: dateString,
-          start_time: selectedTimeSlot,
-          end_time: endTime,
-          status: 'occupied'
-        });
-
-      if (availabilityError) throw availabilityError;
-
       const { error: updateError } = await supabase
         .from('leads')
         .update({
@@ -220,10 +204,7 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
 
       if (updateError) throw updateError;
 
-      setShowConfirmation(true);
-      setTimeout(() => {
-        onClose();
-      }, 2500);
+      onClose();
     } catch (error) {
       console.error('Error creating appointment:', error);
       alert('Erreur lors de la création du rendez-vous');
@@ -520,14 +501,6 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
                 placeholder="Informations complémentaires..."
               />
             </div>
-
-            {showConfirmation && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-4 animate-scale-in">
-                <p className="text-sm text-green-800 dark:text-green-300 font-light text-center">
-                  Un e-mail de confirmation sera envoyé au lead pour l'informer de ce rendez-vous.
-                </p>
-              </div>
-            )}
 
             <div className="flex gap-3 pt-4">
               <button
