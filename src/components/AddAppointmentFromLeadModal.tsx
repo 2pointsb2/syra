@@ -11,9 +11,10 @@ interface AddAppointmentFromLeadModalProps {
 
 interface UserProfile {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  role: string;
+  profile_type: string;
 }
 
 interface TimeSlot {
@@ -54,8 +55,8 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, full_name, email, role')
-        .eq('role', 'Signataire');
+        .select('id, first_name, last_name, email, profile_type')
+        .eq('profile_type', 'Signataire');
 
       if (error) throw error;
       setSignataires(data || []);
@@ -263,31 +264,33 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
                   {showSignataireDropdown && signataireSearchQuery && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-64 overflow-y-auto z-20">
                       {signataires
-                        .filter(sig =>
-                          sig.full_name.toLowerCase().includes(signataireSearchQuery.toLowerCase()) ||
-                          sig.email.toLowerCase().includes(signataireSearchQuery.toLowerCase())
-                        )
+                        .filter(sig => {
+                          const fullName = `${sig.first_name} ${sig.last_name}`.toLowerCase();
+                          const query = signataireSearchQuery.toLowerCase();
+                          return fullName.includes(query) || sig.email.toLowerCase().includes(query);
+                        })
                         .map((sig) => (
                           <button
                             key={sig.id}
                             type="button"
                             onClick={() => {
                               setSelectedSignataire(sig.id);
-                              setSignataireSearchQuery(sig.full_name);
+                              setSignataireSearchQuery(`${sig.first_name} ${sig.last_name}`);
                               setShowSignataireDropdown(false);
                               setSelectedDate(null);
                               setSelectedTimeSlot('');
                             }}
                             className="w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-all flex flex-col gap-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                           >
-                            <span className="text-sm font-light text-gray-900 dark:text-gray-100">{sig.full_name}</span>
+                            <span className="text-sm font-light text-gray-900 dark:text-gray-100">{sig.first_name} {sig.last_name}</span>
                             <span className="text-xs text-gray-600 dark:text-gray-400 font-light">{sig.email}</span>
                           </button>
                         ))}
-                      {signataires.filter(sig =>
-                        sig.full_name.toLowerCase().includes(signataireSearchQuery.toLowerCase()) ||
-                        sig.email.toLowerCase().includes(signataireSearchQuery.toLowerCase())
-                      ).length === 0 && (
+                      {signataires.filter(sig => {
+                        const fullName = `${sig.first_name} ${sig.last_name}`.toLowerCase();
+                        const query = signataireSearchQuery.toLowerCase();
+                        return fullName.includes(query) || sig.email.toLowerCase().includes(query);
+                      }).length === 0 && (
                         <p className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">Aucun signataire trouvé</p>
                       )}
                     </div>
@@ -296,7 +299,10 @@ export default function AddAppointmentFromLeadModal({ onClose, lead }: AddAppoin
                   {selectedSignataire && !showSignataireDropdown && (
                     <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800 flex items-center justify-between">
                       <span className="text-sm font-light text-gray-900 dark:text-gray-100">
-                        {signataires.find(s => s.id === selectedSignataire)?.full_name}
+                        {(() => {
+                          const sig = signataires.find(s => s.id === selectedSignataire);
+                          return sig ? `${sig.first_name} ${sig.last_name}` : '';
+                        })()}
                       </span>
                       <button
                         type="button"
