@@ -958,7 +958,7 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                     <button
                       onClick={handleTestConnection}
                       disabled={isTestingConnection}
-                      className="w-full sm:w-auto px-6 py-2.5 bg-white/80 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs md:text-sm font-light hover:bg-white dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2" style={{ color: '#1e2836' }}
+                      className="w-full sm:w-auto px-6 py-2.5 bg-white/80 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs md:text-sm font-light hover:bg-white dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2 text-gray-900 dark:text-gray-100"
                     >
                       {isTestingConnection ? (
                         <>
