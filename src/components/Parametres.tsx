@@ -500,9 +500,6 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                 >
                   Enregistrer
                 </button>
-                <button className="w-full sm:w-auto px-6 py-2.5 bg-white/80 border border-gray-200 text-gray-700 rounded-full text-xs md:text-sm font-light hover:bg-white transition-all">
-                  Annuler
-                </button>
               </div>
             </div>
           </div>
@@ -604,16 +601,6 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                   className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-xs md:text-sm font-light hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:scale-105"
                 >
                   Modifier le mot de passe
-                </button>
-                <button
-                  onClick={() => {
-                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                    setPasswordError('');
-                    setPasswordSuccess(false);
-                  }}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-white/80 border border-gray-200 rounded-full text-xs md:text-sm font-light hover:bg-white transition-all" style={{ color: '#1e2836' }}
-                >
-                  Annuler
                 </button>
               </div>
             </div>

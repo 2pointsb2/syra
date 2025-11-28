@@ -1,4 +1,4 @@
-import { X, Upload, Plus, Search, UserPlus, Trash2, Eye, Edit2 } from 'lucide-react';
+import { X, Upload, Plus, Search, UserPlus, Trash2, Eye, Edit2, Sheet, Link2 } from 'lucide-react';
 import { useState, useRef } from 'react';
 
 interface User {
@@ -46,11 +46,25 @@ export default function AddListModal({ onClose, onSave, list, availableUsers }: 
     }).filter(Boolean) as string[];
   };
 
+  const getExampleUsersForList = (listName: string) => {
+    if (!list && !listName) {
+      const exampleManagers = availableUsers.filter(u => u.role === 'Manager' || u.role === 'Admin').slice(0, 3);
+      const exampleUsers = availableUsers.filter(u => u.role === 'Utilisateur' || u.role === 'Indicateur d\'affaires').slice(0, 4);
+      return {
+        managers: exampleManagers.map(u => u.id),
+        users: exampleUsers.map(u => u.id)
+      };
+    }
+    return { managers: [], users: [] };
+  };
+
+  const examples = getExampleUsersForList(listName);
+
   const [selectedUsers, setSelectedUsers] = useState<string[]>(
-    list?.users ? getUserIdsFromNames(list.users) : []
+    list?.users ? getUserIdsFromNames(list.users) : examples.users
   );
   const [selectedManagers, setSelectedManagers] = useState<string[]>(
-    list?.managers ? getUserIdsFromNames(list.managers) : []
+    list?.managers ? getUserIdsFromNames(list.managers) : examples.managers
   );
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [manualLeadName, setManualLeadName] = useState('');
@@ -58,6 +72,7 @@ export default function AddListModal({ onClose, onSave, list, availableUsers }: 
   const [manualLeadPhone, setManualLeadPhone] = useState('');
   const [editingLeadId, setEditingLeadId] = useState<string | null>(null);
   const [editingLeadData, setEditingLeadData] = useState<Lead | null>(null);
+  const [leadSearchQuery, setLeadSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredUsers = availableUsers.filter(user =>
@@ -274,7 +289,7 @@ export default function AddListModal({ onClose, onSave, list, availableUsers }: 
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl text-sm text-gray-900 dark:text-gray-100 font-light hover:from-blue-600 hover:to-blue-700 flex items-center justify-center gap-2 shadow-md transition-all"
+                      className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl text-sm font-light hover:from-blue-600 hover:to-blue-700 flex items-center justify-center gap-2 shadow-md transition-all"
                     >
                       <Upload className="w-4 h-4" />
                       Choisir un fichier
@@ -286,56 +301,95 @@ export default function AddListModal({ onClose, onSave, list, availableUsers }: 
 
                   <div className="bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
                     <h3 className="text-sm font-light text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      Ajouter manuellement
+                      <Sheet className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      Importer depuis Google Sheets
+                      <span className="ml-auto px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">LIVE</span>
                     </h3>
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={manualLeadName}
-                        onChange={(e) => setManualLeadName(e.target.value)}
-                        placeholder="Nom complet"
-                        className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
-                      />
-                      <input
-                        type="email"
-                        value={manualLeadEmail}
-                        onChange={(e) => setManualLeadEmail(e.target.value)}
-                        placeholder="Email"
-                        className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
-                      />
-                      <input
-                        type="tel"
-                        value={manualLeadPhone}
-                        onChange={(e) => setManualLeadPhone(e.target.value)}
-                        placeholder="Téléphone"
-                        className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddManualLead}
-                        className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl text-sm text-gray-900 dark:text-gray-100 font-light hover:from-green-600 hover:to-green-700 flex items-center justify-center gap-2 shadow-md transition-all"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Ajouter
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => alert('Fonctionnalité Google Sheets - À venir. Nécessite un compte Admin ou Manager avec Google Sheets synchronisé.')}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl text-sm font-light hover:from-green-600 hover:to-green-700 flex items-center justify-center gap-2 shadow-md transition-all"
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Connecter Google Sheets
+                    </button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-light mt-3">
+                      Synchronisation en temps réel avec votre feuille
+                    </p>
                   </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
+                  <h3 className="text-sm font-light text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    Ajouter manuellement
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={manualLeadName}
+                      onChange={(e) => setManualLeadName(e.target.value)}
+                      placeholder="Nom complet"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
+                    />
+                    <input
+                      type="email"
+                      value={manualLeadEmail}
+                      onChange={(e) => setManualLeadEmail(e.target.value)}
+                      placeholder="Email"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
+                    />
+                    <input
+                      type="tel"
+                      value={manualLeadPhone}
+                      onChange={(e) => setManualLeadPhone(e.target.value)}
+                      placeholder="Téléphone"
+                      className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddManualLead}
+                    className="w-full md:w-auto mt-3 px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl text-sm font-light hover:from-blue-600 hover:to-blue-700 flex items-center justify-center gap-2 shadow-md transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Ajouter
+                  </button>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-light text-gray-900 dark:text-gray-100">Leads dans cette liste ({leads.length})</h3>
                   </div>
-                  <div className="bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl max-h-96 overflow-y-auto">
+                  <div className="relative mb-3">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={leadSearchQuery}
+                      onChange={(e) => setLeadSearchQuery(e.target.value)}
+                      placeholder="Rechercher un lead par nom, email ou téléphone..."
+                      className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/50 rounded-2xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400/50 font-light"
+                    />
+                  </div>
+                  <div className="bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl max-h-[600px] overflow-y-auto">
                     {leads.length === 0 ? (
                       <div className="p-8 text-center text-gray-500 dark:text-gray-400 font-light text-sm">
                         Aucun lead ajouté pour le moment
                       </div>
                     ) : (
                       <div className="divide-y divide-gray-200">
-                        {leads.map((lead) => (
-                          <div key={lead.id} className="p-4 hover:bg-gray-50 transition-colors">
+                        {leads
+                          .filter(lead => {
+                            if (!leadSearchQuery) return true;
+                            const searchLower = leadSearchQuery.toLowerCase();
+                            return (
+                              lead.name.toLowerCase().includes(searchLower) ||
+                              lead.email.toLowerCase().includes(searchLower) ||
+                              lead.phone.toLowerCase().includes(searchLower)
+                            );
+                          })
+                          .map((lead) => (
+                          <div key={lead.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             {editingLeadId === lead.id ? (
                               <div className="space-y-3">
                                 <input
