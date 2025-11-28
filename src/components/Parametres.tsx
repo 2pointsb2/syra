@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { User, Mail, Camera, Bell, Lock, Eye, EyeOff, CheckCircle, XCircle, Loader2, Image, Upload } from 'lucide-react';
+import { User, Mail, Camera, Bell, Lock, Eye, EyeOff, CheckCircle, XCircle, Loader2, Image, Upload, X, Server, Info } from 'lucide-react';
 import { getGoogleSyncStatus, createGoogleSyncRecord, initiateGoogleOAuth, disconnectGoogleSync, GoogleSyncStatus } from '../services/googleSyncService';
 import { getActiveProfile, getProfilePermissions, UserProfile } from '../services/profileService';
 import { getOrganizationSettings, uploadMainLogo, uploadCollapsedLogo, uploadMainLogoDark, uploadCollapsedLogoDark } from '../services/organizationSettingsService';
+import { getUserEmailConfig, createEmailConfig, updateEmailConfig, testSmtpConnection, validateEmail, EmailConfigFormData, getSuggestedPort } from '../services/emailConfigService';
 
 interface ParametresProps {
   onNotificationClick: () => void;
@@ -35,6 +36,7 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
 
   const [currentProfile, setCurrentProfile] = useState<UserProfile | null>(null);
   const [canManageSettings, setCanManageSettings] = useState(false);
+  const [canAccessSheets, setCanAccessSheets] = useState(false);
   const [mainLogoUrl, setMainLogoUrl] = useState<string | null>(null);
   const [collapsedLogoUrl, setCollapsedLogoUrl] = useState<string | null>(null);
   const [mainLogoDarkUrl, setMainLogoDarkUrl] = useState<string | null>(null);
@@ -50,10 +52,32 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
   const mainLogoDarkInputRef = useRef<HTMLInputElement>(null);
   const collapsedLogoDarkInputRef = useRef<HTMLInputElement>(null);
 
+  const [emailConfigData, setEmailConfigData] = useState<EmailConfigFormData>({
+    from_name: '',
+    from_email: '',
+    use_different_account_name: false,
+    password: '',
+    host: '',
+    port: 587,
+    smtp_connection_type: 'TLS',
+    use_different_reply_to: false,
+    reply_to_email: ''
+  });
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
+  const [emailConfigId, setEmailConfigId] = useState<string | null>(null);
+  const [isLoadingEmailConfig, setIsLoadingEmailConfig] = useState(true);
+  const [isSavingEmailConfig, setIsSavingEmailConfig] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [emailConfigError, setEmailConfigError] = useState('');
+  const [emailConfigSuccess, setEmailConfigSuccess] = useState('');
+  const [testConnectionResult, setTestConnectionResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [hasExistingPassword, setHasExistingPassword] = useState(false);
+
   useEffect(() => {
     loadGoogleSyncStatus();
     loadProfile();
     loadLogos();
+    loadEmailConfig();
   }, []);
 
   const loadProfile = async () => {
@@ -63,6 +87,7 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
       if (profile) {
         const permissions = getProfilePermissions(profile.profile_type);
         setCanManageSettings(permissions.canManageLogos);
+        setCanAccessSheets(profile.profile_type === 'Admin' || profile.profile_type === 'Manager');
         setProfileData({
           firstName: profile.first_name,
           lastName: profile.last_name,
@@ -74,6 +99,126 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
       console.error('Error loading profile:', err);
       setCanManageSettings(false);
     }
+  };
+
+  const loadEmailConfig = async () => {
+    try {
+      setIsLoadingEmailConfig(true);
+      const profile = await getActiveProfile();
+      if (profile) {
+        const config = await getUserEmailConfig(profile.id);
+        if (config) {
+          setEmailConfigId(config.id);
+          setEmailConfigData({
+            from_name: config.from_name,
+            from_email: config.from_email,
+            use_different_account_name: config.use_different_account_name,
+            password: '',
+            host: config.host,
+            port: config.port,
+            smtp_connection_type: config.smtp_connection_type,
+            use_different_reply_to: config.use_different_reply_to,
+            reply_to_email: config.reply_to_email || ''
+          });
+          setHasExistingPassword(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading email config:', err);
+    } finally {
+      setIsLoadingEmailConfig(false);
+    }
+  };
+
+  const handleSaveEmailConfig = async () => {
+    try {
+      setIsSavingEmailConfig(true);
+      setEmailConfigError('');
+      setEmailConfigSuccess('');
+
+      if (!currentProfile) {
+        setEmailConfigError('Profil utilisateur non trouvé');
+        return;
+      }
+
+      if (!emailConfigData.password && !hasExistingPassword) {
+        setEmailConfigError('Le mot de passe est requis');
+        return;
+      }
+
+      if (!emailConfigData.from_name.trim()) {
+        setEmailConfigError('Le nom de l\'expéditeur est requis');
+        return;
+      }
+
+      if (!emailConfigData.from_email.trim() || !validateEmail(emailConfigData.from_email)) {
+        setEmailConfigError('L\'email de l\'expéditeur n\'est pas valide');
+        return;
+      }
+
+      if (!emailConfigData.host.trim()) {
+        setEmailConfigError('L\'hôte SMTP est requis');
+        return;
+      }
+
+      if (emailConfigData.use_different_reply_to && emailConfigData.reply_to_email.trim() && !validateEmail(emailConfigData.reply_to_email)) {
+        setEmailConfigError('L\'email de réponse n\'est pas valide');
+        return;
+      }
+
+      const configToSave = { ...emailConfigData };
+      if (!configToSave.password && hasExistingPassword) {
+        configToSave.password = '********';
+      }
+
+      if (emailConfigId) {
+        await updateEmailConfig(emailConfigId, currentProfile.id, configToSave);
+      } else {
+        const newConfig = await createEmailConfig(currentProfile.id, configToSave);
+        setEmailConfigId(newConfig.id);
+        setHasExistingPassword(true);
+      }
+
+      setEmailConfigSuccess('Configuration email enregistrée avec succès');
+      setTimeout(() => setEmailConfigSuccess(''), 3000);
+    } catch (err) {
+      setEmailConfigError(err instanceof Error ? err.message : 'Erreur lors de l\'enregistrement');
+    } finally {
+      setIsSavingEmailConfig(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    try {
+      setIsTestingConnection(true);
+      setTestConnectionResult(null);
+
+      const configToTest = { ...emailConfigData };
+      if (!configToTest.password && hasExistingPassword) {
+        configToTest.password = '********';
+      }
+
+      const result = await testSmtpConnection(configToTest);
+      setTestConnectionResult(result);
+
+      setTimeout(() => setTestConnectionResult(null), 5000);
+    } catch (err) {
+      setTestConnectionResult({
+        success: false,
+        message: err instanceof Error ? err.message : 'Erreur lors du test'
+      });
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+
+  const handleSmtpTypeChange = (type: 'SSL' | 'TLS' | 'None') => {
+    const suggestedPort = getSuggestedPort(type);
+    setEmailConfigData({
+      ...emailConfigData,
+      smtp_connection_type: type,
+      port: suggestedPort
+    });
   };
 
   const loadLogos = async () => {
@@ -479,7 +624,7 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
 
             <div className="space-y-6">
               <p className="text-sm text-gray-600 font-light">
-                Synchronisez votre compte Google pour connecter votre Gmail et votre Google Agenda avec l'application.
+                Synchronisez votre compte Google pour connecter {canAccessSheets ? 'Google Sheets et' : ''} votre Google Agenda avec l'application.
               </p>
 
               {syncError && (
@@ -494,28 +639,32 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="glass-card p-4 rounded-2xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm font-light text-gray-900">Gmail</span>
+                  {canAccessSheets && (
+                    <div className="glass-card p-4 rounded-2xl">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <svg className="w-5 h-5 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H5v-2h7v2zm0-4H5v-2h7v2zm0-4H5V7h7v2zm7 8h-5v-2h5v2zm0-4h-5v-2h5v2zm0-4h-5V7h5v2z"/>
+                          </svg>
+                          <span className="text-sm font-light text-gray-900">Google Sheets</span>
+                        </div>
+                        {googleSync?.gmail_connected ? (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <span className="text-xs font-light text-green-700">Connecté</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <XCircle className="w-5 h-5 text-red-600" />
+                            <span className="text-xs font-light text-red-700">Non connecté</span>
+                          </div>
+                        )}
                       </div>
-                      {googleSync?.gmail_connected ? (
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="w-5 h-5 text-green-600" />
-                          <span className="text-xs font-light text-green-700">Connecté</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <XCircle className="w-5 h-5 text-red-600" />
-                          <span className="text-xs font-light text-red-700">Non connecté</span>
-                        </div>
+                      {googleSync?.gmail_connected && googleSync.gmail_email && (
+                        <p className="text-xs text-gray-500 font-light ml-8">{googleSync.gmail_email}</p>
                       )}
                     </div>
-                    {googleSync?.gmail_connected && googleSync.gmail_email && (
-                      <p className="text-xs text-gray-500 font-light ml-8">{googleSync.gmail_email}</p>
-                    )}
-                  </div>
+                  )}
 
                   <div className="glass-card p-4 rounded-2xl">
                     <div className="flex items-center justify-between">
@@ -544,7 +693,7 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
                   )}
 
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    {googleSync?.gmail_connected || googleSync?.calendar_connected ? (
+                    {(canAccessSheets && googleSync?.gmail_connected) || googleSync?.calendar_connected ? (
                       <button
                         onClick={handleDisconnectGoogle}
                         className="w-full sm:w-auto px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs md:text-sm font-light transition-all shadow-md"
@@ -773,6 +922,284 @@ export default function Parametres({ onNotificationClick, notificationCount }: P
               </div>
             </div>
           )}
+
+          <div className="glass-card p-4 md:p-6 lg:p-8 floating-shadow mt-6" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%)' }}>
+            <h2 className="text-lg md:text-xl font-light text-white mb-6 flex items-center gap-2">
+              Configuration e-mail
+              <Info className="w-4 h-4 text-white/70" />
+            </h2>
+
+            <div className="space-y-6">
+              <p className="text-sm text-white/80 font-light">
+                Configurez les paramètres SMTP pour envoyer des emails depuis le CRM via votre compte email professionnel.
+              </p>
+
+              {emailConfigError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-2xl">
+                  <p className="text-sm text-red-600 font-light">{emailConfigError}</p>
+                </div>
+              )}
+
+              {emailConfigSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-2xl">
+                  <p className="text-sm text-green-600 font-light">{emailConfigSuccess}</p>
+                </div>
+              )}
+
+              {testConnectionResult && (
+                <div className={`p-3 border rounded-2xl ${testConnectionResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                  <p className={`text-sm font-light ${testConnectionResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                    {testConnectionResult.message}
+                  </p>
+                </div>
+              )}
+
+              {isLoadingEmailConfig ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-white" />
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        From name *
+                      </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                        <input
+                          type="text"
+                          value={emailConfigData.from_name}
+                          onChange={(e) => setEmailConfigData({ ...emailConfigData, from_name: e.target.value })}
+                          className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all"
+                          placeholder="Mandjé"
+                        />
+                        {emailConfigData.from_name && (
+                          <button
+                            onClick={() => setEmailConfigData({ ...emailConfigData, from_name: '' })}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        From email *
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                        <input
+                          type="email"
+                          value={emailConfigData.from_email}
+                          onChange={(e) => setEmailConfigData({ ...emailConfigData, from_email: e.target.value })}
+                          className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all"
+                          placeholder="mandje@2points.fr"
+                        />
+                        {emailConfigData.from_email && (
+                          <button
+                            onClick={() => setEmailConfigData({ ...emailConfigData, from_email: '' })}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="use-different-account"
+                      checked={emailConfigData.use_different_account_name}
+                      onChange={(e) => setEmailConfigData({ ...emailConfigData, use_different_account_name: e.target.checked })}
+                      className="w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-2 focus:ring-white/30"
+                    />
+                    <label htmlFor="use-different-account" className="text-sm text-white font-light cursor-pointer flex items-center gap-2">
+                      Use different account name
+                      <Info className="w-4 h-4 text-white/60" />
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
+                      Password *
+                      <Info className="w-4 h-4 text-white/60" />
+                    </label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                      <input
+                        type={showEmailPassword ? 'text' : 'password'}
+                        value={emailConfigData.password}
+                        onChange={(e) => setEmailConfigData({ ...emailConfigData, password: e.target.value })}
+                        className="w-full pl-10 pr-12 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all"
+                        placeholder={hasExistingPassword ? '••••••••••' : 'Entrez votre mot de passe'}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowEmailPassword(!showEmailPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                      >
+                        {showEmailPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {hasExistingPassword && (
+                      <p className="text-xs text-white/60 font-light mt-1">Laissez vide pour conserver le mot de passe actuel</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Host *
+                      </label>
+                      <div className="relative">
+                        <Server className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                        <input
+                          type="text"
+                          value={emailConfigData.host}
+                          onChange={(e) => setEmailConfigData({ ...emailConfigData, host: e.target.value })}
+                          className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all"
+                          placeholder="smtp.ionos.fr"
+                        />
+                        {emailConfigData.host && (
+                          <button
+                            onClick={() => setEmailConfigData({ ...emailConfigData, host: '' })}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Port
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={emailConfigData.port}
+                          onChange={(e) => setEmailConfigData({ ...emailConfigData, port: parseInt(e.target.value) || 587 })}
+                          className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all appearance-none"
+                          placeholder="587"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-3 flex items-center gap-2">
+                      SMTP connection type
+                      <Info className="w-4 h-4 text-white/60" />
+                    </label>
+                    <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-2xl border border-white/20">
+                      <button
+                        type="button"
+                        onClick={() => handleSmtpTypeChange('SSL')}
+                        className={`px-6 py-3 text-sm font-light transition-all ${
+                          emailConfigData.smtp_connection_type === 'SSL'
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        SSL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSmtpTypeChange('TLS')}
+                        className={`px-6 py-3 text-sm font-light transition-all border-l border-r border-white/20 ${
+                          emailConfigData.smtp_connection_type === 'TLS'
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        TLS
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSmtpTypeChange('None')}
+                        className={`px-6 py-3 text-sm font-light transition-all ${
+                          emailConfigData.smtp_connection_type === 'None'
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        None
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="use-different-reply-to"
+                      checked={emailConfigData.use_different_reply_to}
+                      onChange={(e) => setEmailConfigData({ ...emailConfigData, use_different_reply_to: e.target.checked })}
+                      className="w-4 h-4 rounded border-white/30 bg-white/10 text-blue-500 focus:ring-2 focus:ring-white/30"
+                    />
+                    <label htmlFor="use-different-reply-to" className="text-sm text-white font-light cursor-pointer flex items-center gap-2">
+                      Set a different reply-to address
+                      <Info className="w-4 h-4 text-white/60" />
+                    </label>
+                  </div>
+
+                  {emailConfigData.use_different_reply_to && (
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        Reply-to email
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
+                        <input
+                          type="email"
+                          value={emailConfigData.reply_to_email}
+                          onChange={(e) => setEmailConfigData({ ...emailConfigData, reply_to_email: e.target.value })}
+                          className="w-full pl-10 pr-10 py-2.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 font-light transition-all"
+                          placeholder="reply@example.com"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button
+                      onClick={handleTestConnection}
+                      disabled={isTestingConnection}
+                      className="w-full sm:w-auto px-6 py-2.5 bg-white/20 hover:bg-white/30 border border-white/30 text-white rounded-full text-sm font-light transition-all flex items-center justify-center gap-2"
+                    >
+                      {isTestingConnection ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Test en cours...
+                        </>
+                      ) : (
+                        'Tester la connexion'
+                      )}
+                    </button>
+                    <button
+                      onClick={handleSaveEmailConfig}
+                      disabled={isSavingEmailConfig}
+                      className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-light hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:scale-105 flex items-center justify-center gap-2"
+                    >
+                      {isSavingEmailConfig ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Enregistrement...
+                        </>
+                      ) : (
+                        'Enregistrer'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

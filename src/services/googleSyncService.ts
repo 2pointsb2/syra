@@ -5,7 +5,9 @@ export interface GoogleSyncStatus {
   user_id: string;
   gmail_connected: boolean;
   calendar_connected: boolean;
+  sheets_connected: boolean;
   gmail_email: string | null;
+  sheets_email: string | null;
   last_sync_at: string | null;
   sync_status: 'connected' | 'error' | 'disconnected';
   sync_error_message: string | null;
@@ -35,6 +37,7 @@ export async function createGoogleSyncRecord(userId: string): Promise<GoogleSync
       user_id: userId,
       gmail_connected: false,
       calendar_connected: false,
+      sheets_connected: false,
       sync_status: 'disconnected',
     })
     .select()
@@ -49,7 +52,9 @@ export async function updateGoogleSyncStatus(
   updates: {
     gmail_connected?: boolean;
     calendar_connected?: boolean;
+    sheets_connected?: boolean;
     gmail_email?: string;
+    sheets_email?: string;
     sync_status?: 'connected' | 'error' | 'disconnected';
     sync_error_message?: string | null;
     last_sync_at?: string;
@@ -69,7 +74,9 @@ export async function disconnectGoogleSync(syncId: string): Promise<void> {
     .update({
       gmail_connected: false,
       calendar_connected: false,
+      sheets_connected: false,
       gmail_email: null,
+      sheets_email: null,
       access_token_encrypted: null,
       refresh_token_encrypted: null,
       sync_status: 'disconnected',
@@ -84,8 +91,8 @@ export function initiateGoogleOAuth(): void {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const redirectUri = `${window.location.origin}/auth/google/callback`;
   const scope = [
-    'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/spreadsheets',
     'https://www.googleapis.com/auth/userinfo.email',
   ].join(' ');
 
@@ -108,9 +115,10 @@ export async function handleGoogleOAuthCallback(code: string, userId: string): P
 
   if (syncStatus) {
     await updateGoogleSyncStatus(syncStatus.id, {
-      gmail_connected: true,
       calendar_connected: true,
+      sheets_connected: true,
       gmail_email: 'user@example.com',
+      sheets_email: 'user@example.com',
       sync_status: 'connected',
       last_sync_at: new Date().toISOString(),
     });
