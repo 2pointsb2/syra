@@ -116,7 +116,11 @@ export default function AddAppointmentFromLeadModal({ onClose, lead, onAppointme
   };
 
   const generateGoogleMeetLink = () => {
-    window.open('https://meet.google.com/landing', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no');
+    const width = 600;
+    const height = 500;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+    window.open('https://meet.google.com/landing', '_blank', `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
