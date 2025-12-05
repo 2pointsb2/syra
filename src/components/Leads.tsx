@@ -1094,6 +1094,7 @@ export default function Leads({ onNotificationClick, notificationCount, initialF
                                 }} className="block w-full text-left px-3 py-2 text-xs font-light rounded-xl hover:bg-blue-50 text-blue-700">NRP</button>
                                 <button onClick={() => { handleLeadUpdate(lead.id, { status: 'À rappeler' }); setShowStatusMenu(null); }} className="block w-full text-left px-3 py-2 text-xs font-light rounded-xl hover:bg-cyan-50 text-cyan-700">À rappeler</button>
                                 <button onClick={() => { handleLeadUpdate(lead.id, { status: 'Intéressé' }); setShowStatusMenu(null); }} className="block w-full text-left px-3 py-2 text-xs font-light rounded-xl hover:bg-purple-50 text-purple-700">Intéressé</button>
+                                <button onClick={() => { setSelectedLeadForAppointment(lead); setShowAppointmentModalForLead(true); setShowStatusMenu(null); }} className="block w-full text-left px-3 py-2 text-xs font-light rounded-xl hover:bg-violet-50 text-violet-700">RDV pris</button>
                                 <button onClick={() => { handleLeadUpdate(lead.id, { status: 'Pas intéressé' }); setShowStatusMenu(null); }} className="block w-full text-left px-3 py-2 text-xs font-light rounded-xl hover:bg-red-50 text-red-700">Pas intéressé</button>
                               </>
                             )}

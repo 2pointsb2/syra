@@ -116,14 +116,7 @@ export default function AddAppointmentFromLeadModal({ onClose, lead, onAppointme
   };
 
   const generateGoogleMeetLink = () => {
-    const generateSegment = (length: number) => {
-      return Math.random().toString(36).substring(2, 2 + length);
-    };
-    const segment1 = generateSegment(3);
-    const segment2 = generateSegment(4);
-    const segment3 = generateSegment(3);
-    const meetLink = `https://meet.google.com/${segment1}-${segment2}-${segment3}`;
-    setLocation(meetLink);
+    window.open('https://meet.google.com/landing', '_blank', 'width=1200,height=800,menubar=no,toolbar=no,location=no,status=no');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
